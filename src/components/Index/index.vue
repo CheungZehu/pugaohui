@@ -46,10 +46,9 @@
 				</router-link>
 			</div>
 			<div class="item-listImg">
-				<router-link class="graphic" v-for="item in allData[1]" :key="item.id" :to="{name: 'ActivityDetail', params: {id: item.id}}">
-					<graphic :title="item.title" :imgUrl="img + item.imgurl" :time="item.createTime"></graphic>
-				</router-link>
-				
+					<router-link class="graphic" v-for="item in allData[1]" :key="item.id" :to="{name: 'ActivityDetail', params: {id: item.id}}">
+						<graphic :title="item.title" :imgUrl="img + item.imgurl" :time="item.createTime"></graphic>
+					</router-link>
 			</div>
 		</div>
 		<div class="index-item">
