@@ -1,5 +1,5 @@
 <template>
-	<div class="main">
+	<div class="main" id="main">
 		<div class="picture">
 			<swiper loop auto :list="imgList" dots-position="center"></swiper>
 		</div>
@@ -110,32 +110,33 @@
 			},
 			getIndexGarousel () {
 				api.getCarousel().then(res => {
-					let ImgData = res.data
-					this.imgList = ImgData.map(item => ({
-						img: this.img + item.path
-					}))
+					if (res.data) {
+						let ImgData = res.data
+						this.imgList = ImgData.map(item => ({
+							img: this.img + item.path
+						}))
+						this.loading(false)
+					} else {
+						this.loading(true)
+					}	
 				})
 			},
-			// getAboutpugaohui () {
-			// 	api.getNews().then(res => {
-			// 		// this.aboutPugaohui = res.data[0].newsList
-			// 		// console.log(res.data[0].newsList)
-			// 		// console.log(this.aboutPugaohui)
-			// 	})
-			// },
 			getIndexNews () {
 				api.getIndexNews().then(res => {
-					let objData = res.data
-					this.allData = objData.map((item, key) => {
-						// var length = item.newsList.length > 3 ? 3 : item.newsList.length
-						if (key == 1) {
-							var list = item.newsList
-						} else {
-							list = item.newsList.slice(0, 3)
-						}
-						return list
-					})
-					// console.log(this.allData[4])
+					if (res.data) {
+						let objData = res.data
+						this.allData = objData.map((item, key) => {
+							if (key == 1) {
+								var list = item.newsList
+							} else {
+								list = item.newsList.slice(0, 3)
+							}
+							return list
+						})
+						this.loading(false)
+					} else {
+						this.loading(true)
+					}
 				})
 			}
 		}

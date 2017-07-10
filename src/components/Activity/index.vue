@@ -53,10 +53,15 @@
 				let ActivityCarousel = 'ActivityCarousel'
 				let params = { categoryId: ActivityCarousel }
 				api.getCarousel(params).then(res => {
-					let ImgData = res.data
-					this.imgList = ImgData.map(item => ({
-						img: this.img + item.path
-					}))
+					if (res.data) {
+						let ImgData = res.data
+						this.imgList = ImgData.map(item => ({
+							img: this.img + item.path
+						}))
+						this.loading(false)
+					} else {
+						this.loading(true)
+					}	
 				})
 			},
 			getNews () {
@@ -65,11 +70,17 @@
 				let type = 'News'
 				let params = { pageNumber: this.curPage, type: type }
 				api.getNews(params).then(res => {
-					this.total = res.data.fullListSize
-					for (var i = 0; i < res.data.list.length; i++) {
-						this.newsData.push(res.data.list[i])
+					if (res.data) {
+						this.total = res.data.fullListSize
+						for (var i = 0; i < res.data.list.length; i++) {
+							this.newsData.push(res.data.list[i])
+						}
+						this.sw = true
+						this.loading(false)
+					} else {
+						this.loading(true)
 					}
-					this.sw = true
+						
 				})
 			}
 		}

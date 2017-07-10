@@ -1,16 +1,14 @@
 <template>
 	<div>
-		<!-- <transition name="slide-fade slide-left"> -->
-			<router-view></router-view>
-		<!-- </transition> -->
+		<loading v-model="isLoading"></loading>
+		<transition :name="'slide-' + (direction === 'forward' ? 'in' : 'out')">
+			<router-view class="router-view"></router-view>
+		</transition>
+
+		<!-- <router-view></router-view> -->
 		
 		<div class="bottom"></div>
 		<tabbar class="tabbar">
-						<!-- <tabbar-item v-for="item in tabBar" :key="item.id" :selected="tag === item.tabList" :link="item.link" @click="setRouter">
-               <span slot="label" class="iconfont" :class="item.tabIcon">{{item.tabList}}</span>
-            </tabbar-item>
- -->
-
             <tabbar-item :selected="isIndex" link="/index">
                <span slot="label" class="iconfont" :class="[isIndex ? 'icon-shouye1' : 'icon-shouye']">首页</span>
             </tabbar-item>
@@ -28,16 +26,19 @@
 </template>
 
 <script>
-	import { Tabbar, TabbarItem } from 'vux'
-	import router from 'vue-router'
+	import { Tabbar, TabbarItem, Loading } from 'vux'
+	// import router from 'vue-router'
+	import { mapState } from 'vuex'
 
 	export default {
 		components: {
-			Tabbar, TabbarItem
+			Tabbar, TabbarItem, Loading
 		},
 		data () {
 			return {
 				transitionName:'',
+				show: true,
+
 				tag: '首页',
 				tabBar: [
 					{
@@ -61,12 +62,6 @@
 						link: '/my'
 					},
 				]
-				// tabList: [
-				// 	'首页', '活动', '合作', '我的'
-				// ],
-				// tabIcon: [
-				// 	'icon-shouye1', 'icon-huodong2', 'icon-hezuo1', 'icon-wode1'
-				// ]
 			}
 		},
 		computed: {
@@ -81,18 +76,15 @@
 			},
 			isMy () {
 				return /my/.test(this.$route.path)
-			}
+			},
+
+			...mapState({
+				route: state => state.route,
+				path: state => state.route.path,
+				isLoading: state => state.vux.isLoading,
+				direction: state => state.vux.direction
+			})
 		},
-		watch: {
-  		'$route' (to, from) {
-    		const toDepth = to.path.split('/').length
-    		const fromDepth = from.path.split('/').length
-    		this.transitionName = toDepth < fromDepth ? 'slide-right' : 'slide-left'
-  		},
-  		transitionName(){
-    		console.log(this.transitionName)
-  		}
-		}
 	}
 </script>
 
@@ -113,13 +105,43 @@
 		height: 20px !important;
 		display: block;
 	}
-	.slide-fade-enter-active {
-		transition: all .3s ease;
+
+	.fade-enter-active, .fade-leave-active {
+		transition: opacity .5s;
 	}
-	.slide-fade-leave-active {
-		transition: all .1s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+	.fade-enter, .fade-leave-to {
+		opacity: 0
 	}
-	.slide-fade-enter, .slide-fade-leave-active {
+
+	.router-view {
+		width: 100%;
+	}
+
+	.slide-out-enter-active,
+	.slide-out-leave-active,
+	.slide-in-enter-active,
+	.slide-in-leave-active {
+		will-change: transform;
+		transition: all 500ms;
+		height: 100%;
+		position: absolute;
+		backface-visibility: hidden;
+		perspective: 1000;
+	}
+	.slide-out-enter {
 		opacity: 0;
+		transform: translate3d(-100%, 0, 0);
+	}
+	.slide-out-leave-active {
+		opacity: 0;
+		transform: translate3d(100%, 0, 0);
+	}
+	.slide-in-enter {
+		opacity: 0;
+		transform: translate3d(100%, 0, 0);
+	}
+	.slide-in-leave-active {
+		opacity: 0;
+		transform: translate3d(-100%, 0, 0);
 	}
 </style>
