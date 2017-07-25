@@ -1,5 +1,7 @@
 <template>
-	<div class="new-detail" v-if="!isLoading">
+	<div>
+	<loading v-if="!show"></loading>
+	<div class="new-detail" v-else>
 		<div class="new-title">
 			<p>{{titleDetail.title}}</p>
 			<p>
@@ -18,13 +20,34 @@
 		</div> -->
 		<div class="new-text" v-html="newsDetail"></div>
 	</div>
+	</div>
 </template>
 
 <script>
 	import api from "../../api/api"
-	import { mapState, mapActions } from 'vuex'
+	import wx from 'weixin-js-sdk'
+	import { Loading } from 'vux'
+	import axios from 'axios'
+	import qs from 'qs'
+
+// 	function postData(url, params) {
+// 	return new Promise((resolve, reject) => {
+// 		axios.post(url, qs.stringify(params))
+// 			.then(res => {
+// 				resolve(res)
+// 			}, err => {
+// 				reject(err)
+// 			})
+// 			.catch(error => {
+// 				reject(error)
+// 			})
+// 	})
+// }
 
 	export default {
+		components: {
+			Loading
+		},
 		data () {
 			return {
 				newsDetail: [],
@@ -32,29 +55,23 @@
 				show: false
 			}
 		},
-		computed: {
-			...mapState({
-				isLoading: state => state.vux.isLoading
-			})
-		},
 		created () {
 			this.setDetail()
+			this.configWxSdk()
 		},
 		watch: {
 			'$route': 'setDetail'
 		},
 		methods: {
-			...mapActions([
-				'updateLoadingStatus'
-			]),
 			setDetail () {
-				this.show = false
-				this.updateLoadingStatus(true)
+				this.loading(true)
+				// this.updateLoadingStatus(true)
 				api.getDetail({id: this.$route.params.id}).then(res => {
 					this.titleDetail = res.data
+					console.log(res.data)
 					this.newsDetail = this.titleDetail.content
-					var strs = this.newsDetail.split('<img style="display:inline;"')
-					var text = '<img style="display:inline;width:100%;height:100%;" class="weixin"'
+					var strs = this.newsDetail.split('<img style="display:inline;')
+					var text = '<img style="display:inline;width:100%;height:100%;'
 					for (var i = 0; i < strs.length - 1; i++) {
 						strs[i] += text
 					}
@@ -62,20 +79,64 @@
 						return oVal + nVal
 					}
 					this.newsDetail = strs.reduce(append)
-					this.updateLoadingStatus(false)
+					// this.updateLoadingStatus(false)
 					this.show = true
+					this.loading(false)
 				})
-			}
+			},
+			loadJsapiTicketSign (jsApiList) {
+				let signUrl = location.href.split('#')[0]
+				api.getWeixin({'url': signUrl}).then(res => {
+					this.configApiList(res.data, jsApiList)
+				})
+			},
+			configWxSdk() {
+				wx.ready(() => {
+					console.log('wechat ready')
+
+					let dataForWeixin = {
+						title: this.titleDetail.title,
+						desc: this.titleDetail.shortContent || this.titleDetail.title,
+						link: window.location.href,
+						imgUrl: 'http://s1.wego168.com/imgApp' + this.titleDetail.imgUrl,
+						success: () => {
+							// alert('成功')
+						},
+						cancel: () => {
+							// alert('取消')
+						}
+					}
+
+					wx.onMenuShareAppMessage(dataForWeixin)
+					wx.onMenuShareTimeline(dataForWeixin)
+				})
+				wx.error(() => {
+					alert('失败')
+				})
+				let jsApiList = ['onMenuShareAppMessage', 'onMenuShareTimeline']
+				this.loadJsapiTicketSign(jsApiList)
+			},
+			configApiList(obj, jsApiList) {
+				wx.config({
+					debug: false,
+					appId: obj.appId,
+					timestamp: obj.timestamp,
+					nonceStr: obj.nonceStr,
+					signature: obj.signature,
+					jsApiList: jsApiList
+				})
+			},
+			
 		}
 	}
 </script>
 
 <style lang="less" scoped>
 	.new-detail {
+		background-color: #fff;
 		.new-title {
 			background-color: #fff;
 			padding: 15px 15px 10px 15px;
-			border-bottom: 1px solid #f2f2f2;
 			p:first-child {
 				margin-bottom: 10px;
 				font-size: 24px;

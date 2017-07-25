@@ -1,10 +1,12 @@
 <template>
-	<div class="main" id="main">
-		<div class="picture">
+	<!-- <div> -->
+	<div class="main" id="demo_list_box">
+	<!-- <div class="main" id="demo_list_box" :style="{height: `${height}px`}"> -->
+		<div class="picture" v-if="imgList.length > 0">
 			<swiper loop auto :list="imgList" dots-position="center"></swiper>
 		</div>
 
-		<div class="index-item">
+		<div class="index-item" v-if="Introduction.length > 0">
 			<div class="item-title">
 				<!-- <i class="icon iconfont icon-guanyu"></i> -->
 				<span class="title iconfont icon-guanyu">关于普高会</span>
@@ -17,12 +19,12 @@
 				<!-- <p v-for="item in allData[0]" :key="item.id">
 					{{item.title}}
 				</p> -->
-				<router-link v-for="item in allData[0]" :key="item.id" :to="{name: 'NewsDetail', params: {id: item.id}}">
+				<router-link v-for="item in Introduction" :key="item.id" :to="{name: 'NewsDetail', params: {id: item.id}}">
 					<p>{{item.title}}</p>
 				</router-link>
 			</div>
 		</div>
-		<div class="index-item">
+		<div class="index-item" v-if="newsList.length > 0">
 			<div class="item-title">
 				<span class="title iconfont icon-dongtai">最新动态</span>
 				<router-link to="/activity">
@@ -32,12 +34,12 @@
 				
 			</div>
 			<div class="item-list">
-				<router-link v-for="item in allData[4]" :key="item.id" :to="{name: 'NewsDetail', params: {id: item.id}}">
+				<router-link v-for="item in newsList" :key="item.id" :to="{name: 'NewsDetail', params: {id: item.id}}">
 					<p>{{item.title}}</p>
 				</router-link>
 			</div>
 		</div>
-		<div class="index-item">
+		<div class="index-item" v-if="Activity.length > 0">
 			<div class="item-title">
 				<span class="title iconfont icon-huodong1">各种活动</span>
 				<router-link to="/activity/ActivityList">
@@ -46,12 +48,12 @@
 				</router-link>
 			</div>
 			<div class="item-listImg">
-					<router-link class="graphic" v-for="item in allData[1]" :key="item.id" :to="{name: 'ActivityDetail', params: {id: item.id}}">
-						<graphic :title="item.title" :imgUrl="img + item.imgurl" :time="item.createTime"></graphic>
+					<router-link class="graphic" v-for="item in Activity" :key="item.id" :to="{name: 'ActivityDetail', params: {id: item.id}}">
+						<graphic :title="item.title" :imgUrl="img + item.imgUrl" :time="item.startTime" :status="item.status"></graphic>
 					</router-link>
 			</div>
 		</div>
-		<div class="index-item">
+		<div class="index-item" v-if="Coach.length > 0">
 			<div class="item-title">
 				<span class="title iconfont icon-jiaolian">我们的教练</span>
 				<router-link to="/index/Coach">
@@ -59,12 +61,12 @@
 					<span class="more">更多</span>
 				</router-link>
 			</div>
-			<router-link tag="li" v-for="item in allData[2]" :key="item.id" :to="{name: 'CoachDetail', params: {id: item.id}}">
+			<router-link tag="li" v-for="item in Coach" :key="item.id" :to="{name: 'CoachDetail', params: {id: item.id}}">
 				<people-list :name="item.title" :imgUrl="img + item.imgurl" :introInfo="item.introInfo"></people-list>
 			</router-link>
 			
 		</div>
-		<div class="index-item">
+		<div class="index-item" v-if="Cooperation.length > 0">
 			<div class="item-title">
 				<span class="title iconfont icon-hezuo">合作伙伴</span>
 				<router-link to="/cooperation">
@@ -72,12 +74,13 @@
 					<span class="more">更多</span>
 				</router-link>
 			</div>
-			<router-link v-for="item in allData[3]" :key="item.id" :to="{name: 'CooperationDetail', params: {id: item.id}}">
+			<router-link v-for="item in Cooperation" :key="item.id" :to="{name: 'CooperationDetail', params: {id: item.id}}">
 				<partner :name="item.title" :imgUrl="img + item.imgurl"></partner>
 			</router-link>
 			
 		</div>
 	</div>
+	<!-- </div> -->
 </template>
 
 <script>
@@ -86,6 +89,7 @@
 	import Graphic from '../Common/Graphic'
 	import PeopleList from '../Common/PeopleList'
 	import Partner from '../Common/Partner'
+	import { mapState, mapActions } from 'vuex'
 
 	export default {
 		components: {
@@ -95,46 +99,70 @@
 			return {
 				imgList: [],
 				allData: {},
+				newsList: [],
+				Activity: [],
+				Introduction: [],
 				aboutPugaohui: [],
-				img: 'http://s1.wego168.com/imgApp'
+				Coach: [],
+				Cooperation: [],
+				img: 'http://s1.wego168.com/imgApp',
+				height: window.innerHeight - 50
 			}
+		},
+		activated () {
+	    document.querySelector('#demo_list_box').scrollTop = this.demoTop
+	  },
+		computed: {
+			...mapState({
+				demoTop: state => state.vux.demoScrollTop
+			})
 		},
 		created () {
 			this.getIndexGarousel()
 			this.getIndexNews()
+			this.getActivityList()
 		},
 		methods: {
-			getMore () {
-				this.$router.push('/activity/ActivityList')
-			},
 			getIndexGarousel () {
 				api.getCarousel().then(res => {
 					if (res.data) {
+						// console.log(res.data)
 						let ImgData = res.data
 						this.imgList = ImgData.map(item => ({
-							img: this.img + item.path
+						img: this.img + item.path
 						}))
-						this.loading(false)
-					} else {
-						this.loading(true)
-					}	
+					}
 				})
 			},
 			getIndexNews () {
 				api.getIndexNews().then(res => {
 					if (res.data) {
 						let objData = res.data
-						this.allData = objData.map((item, key) => {
-							if (key == 1) {
-								var list = item.newsList
-							} else {
-								list = item.newsList.slice(0, 3)
+						objData.map(item => {
+							switch (item.code) {
+								case 'News':
+									this.newsList = item.newsList.slice(0, 3)
+									break
+								case 'Qicheng':
+									this.Introduction = item.newsList.slice(0, 3)
+									break
+								case 'JL':
+									this.Coach = item.newsList.slice(0, 3)
+									break
+								case 'HZ':
+									this.Cooperation = item.newsList.slice(0, 3)
+									break
+								default:
 							}
-							return list
 						})
-						this.loading(false)
-					} else {
-						this.loading(true)
+					}
+				})
+			},
+			getActivityList () {
+				api.DefaultActivityList().then(res => {
+					if (res.data) {
+						this.Activity = res.data
+						// console.log(this.Activity)
 					}
 				})
 			}
@@ -142,7 +170,12 @@
 	}
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
+	.demo-list-box {
+	  width: 100%;
+	  overflow: scroll;
+	  -webkit-overflow-scrolling: touch;
+	}
 	.index-item {
 		margin-bottom: 15px;
 		background-color: #fff;
@@ -204,4 +237,5 @@
 	.index-item:last-child {
 		margin-bottom: 0;
 	}
+
 </style>

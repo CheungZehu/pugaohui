@@ -1,10 +1,11 @@
 <template>
-	<div class="cooperation-detail">
+	<div class="cooperation-detail" v-if="show">
 		<div class="cooperation-title">
 			<p>{{titleDetail.title}}</p>
 			<p>
 				<span class="time">{{titleDetail.showDate}}</span>
-				<span class="origin">{{titleDetail.author}}</span>
+				<span class="author" v-if="titleDetail.author">{{titleDetail.author}}</span>
+				<a class="origin" :href="titleDetail.weixinUrl" v-if="titleDetail.weixinName">{{titleDetail.weixinName}}</a>
 				<!-- <span class="read">123</span> -->
 			</p>
 		</div>
@@ -30,38 +31,43 @@
 
 <script>
 	import api from '../../api/api'
+	import { mapActions } from 'vuex'
 
 	export default {
 		data () {
 			return {
 				cooperationDetail: [],
-				titleDetail: {}
+				titleDetail: {},
+				show: false
 			}
 		},
 		created () {
-			this.setDetail(this.$route.params.id)
+			this.setDetail()
+		},
+		watch: {
+			'$route': 'setDetail'
 		},
 		methods: {
-			setDetail (id) {
-				api.getDetail({id: id}).then(res => {
+			...mapActions([
+				'updateLoadingStatus'
+			]),
+			setDetail () {
+				this.show = false
+				this.updateLoadingStatus(true)
+				api.getDetail({id: this.$route.params.id}).then(res => {
 					this.titleDetail = res.data
 					this.cooperationDetail = this.titleDetail.content
-					// let strs = this.titleDetail.content.split('<p>')
-					// let total = strs.reduce(function (sum, n) {
-					// 	return sum + n
-					// })
-					// this.cooperationDetail = total.split('</p>')
-					// this.cooperationDetail.splice(-1, 1)
-					// for (var i =0; i < this.cooperationDetail.length; i++) {
-					// 	if (this.cooperationDetail[i] === '<br/>') {
-					// 		this.cooperationDetail.splice(i, 1)
-					// 	}
-					// 	if (/img/.test(this.cooperationDetail[i])) {
-					// 		var imgs = this.cooperationDetail[i].split('"')
-					// 		this.cooperationDetail[i] = imgs[3]
-					// 	}
-					// }
-					// console.log(this.cooperationDetail)
+					var strs = this.cooperationDetail.split('<img style="display:inline;')
+					var text = '<img style="display:inline;width:100%;height:100%;'
+					for (var i = 0; i < strs.length - 1; i++) {
+						strs[i] += text
+					}
+					function append (oVal, nVal) {
+						return oVal + nVal
+					}
+					this.cooperationDetail = strs.reduce(append)
+					this.updateLoadingStatus(false)
+					this.show = true
 				})
 			}
 		}
@@ -76,20 +82,26 @@
 			border-bottom: 1px solid #f2f2f2;
 			p:first-child {
 				margin-bottom: 10px;
-				font-size: 20px;
+				font-size: 24px;
 				font-weight: bold;
+				color: #3e3e3e;
 			}
 			p:last-child {
 				line-height: 25px;
 				position: relative;
 				span {
 					color: #888888;
-					font-size: 14px;
+					font-size: 16px;
+					margin-right: 5px;
 				}
 				.read {
 					position: absolute;
 					right: 0;
 					top: 1px;
+				}
+				.origin {
+					color: #607fa6;
+					font-size: 16px;
 				}
 			}
 		}

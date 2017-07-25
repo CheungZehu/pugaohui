@@ -4,13 +4,23 @@
 			<img src="../../../static/images/touxiang_03.png" alt="">
 		</div>
 		<div class="comment-info">
-			<p class="name">哈妹</p>
+<!-- 			<p class="name">哈妹</p>
 			<p class="text">巴拉巴贝拉北京房价爱理不理不仅拉不了仅仅拉不了仅拉不拉不了仅仅拉不了仅拉不了尽量拉拉不了仅仅拉不了仅拉不不了尽量把看尽量把看不拉屎</p>
 			<span class="time">刚刚</span>
-			<span class="reply">回复</span>
+			<span class="reply">回复</span> -->
+			<p class="name">{{nickname}}</p>
+			<p class="text">{{content}}</p>
+			<span class="time">{{createTime}}</span>
+			<!-- <span class="reply">回复</span> -->
 		</div>
 	</div>
 </template>
+
+<script>
+	export default {
+		props: ['nickname', 'content', 'createTime']
+	}
+</script>
 
 <style lang="less">
 	.comment {

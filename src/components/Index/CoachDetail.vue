@@ -1,5 +1,5 @@
 <template>
-	<div class="coach-detail">
+	<div class="coach-detail" v-if="show">
 		<div class="coach-item">
 			<div class="coach-head">
 				<img src="../../../static/images/touxiang_03.png" alt="">
@@ -10,7 +10,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="coach-item" v-html="coachDetail"></div>
+		<div class="coach-item text" v-html="coachDetail"></div>
 		<!-- <div class="coach-item">
 			<div class="coach-introduction">
 				<div class="introduction-item">
@@ -39,6 +39,7 @@
 
 <script>
 	import api from "../../api/api"
+	import { mapActions } from 'vuex'
 
 	export default {
 		data () {
@@ -46,17 +47,36 @@
 				coachDetail: [],
 				titleDetail: {},
 				img: 'http://s1.wego168.com/imgApp',
+				show: false
 			}
 		},
 		created () {
-			this.setDetail(this.$route.params.id)
+			this.setDetail()
+		},
+		watch: {
+			'$route': 'setDetail'
 		},
 		methods: {
-			setDetail (id) {
-				api.getDetail({id: id}).then(res => {
+			...mapActions([
+				'updateLoadingStatus'
+			]),
+			setDetail () {
+				this.show = false
+				this.updateLoadingStatus(true)
+				api.getDetail({id: this.$route.params.id}).then(res => {
 					this.titleDetail = res.data
 					this.coachDetail = this.titleDetail.content
-					// console.log(this.titleDetail)
+					var strs = this.coachDetail.split('<img style="display:inline;')
+					var text = '<img style="display:inline;width:100%;height:100%;'
+					for (var i = 0; i < strs.length - 1; i++) {
+						strs[i] += text
+					}
+					function append (oVal, nVal) {
+						return oVal + nVal
+					}
+					this.coachDetail = strs.reduce(append)
+					this.updateLoadingStatus(false)
+					this.show = true
 				})
 			}
 		}
@@ -64,6 +84,9 @@
 </script>
 
 <style lang="less">
+	.text {
+		padding: 10px 20px;
+	}
 	.coach-detail {
 		.coach-item {
 			&:last-child {

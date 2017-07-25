@@ -1,19 +1,28 @@
 <template>
 	<!-- <div class=""> -->
 		<div>
-			<img :src="imgUrl" alt="">
-			<p>{{title}}</p>
+			<div class="img">
+				<img :src="imgUrl" alt="">
+			</div>
+			
+			<div class="text">
+				<p>{{title}}</p>
+			</div>
+			
 			<span class="time">{{startTime}}</span>
-			<span class="status sign-up">报名中</span>
+			<span class="status sign-up">{{Status}}</span>
 		</div>
 </template>
 
 <script>
 	export default {
-		props: ['title', 'imgUrl', 'time'],
+		props: ['title', 'imgUrl', 'time', 'status'],
 		computed: {
 			startTime () {
 				return this.time.split(" ")[0]
+			},
+			Status () {
+				return this.status.split('活动')[1]
 			}
 		}
 	}
@@ -40,13 +49,26 @@
 		&:nth-child(even) {
 			margin-left: 0;
 		}
-		img {
-			width: 100%;
+		.img {
+			height: 110px;
+			overflow: hidden;
+			img {
+				width: 100%;
+			}
 		}
-		p {
+		
+		.text {
 			padding: 0 5px 50px 5px;
-			text-align: justify;
+			p {
+				
+				text-align: justify;
+				display: -webkit-box;
+				-webkit-box-orient: vertical;
+				-webkit-line-clamp: 3;
+				overflow: hidden;
+			}
 		}
+		
 		.time {
 			color: #888888;
 			position: absolute;
@@ -70,6 +92,7 @@
 			position: absolute;
 			right: 0;
 			bottom: 0;
+			font-size: 12px;
 			&:before {
 				content: '';
 				width: 0;

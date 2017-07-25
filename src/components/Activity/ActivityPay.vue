@@ -6,22 +6,22 @@
 				<p class="time">2016-25-65 54.65</p>
 			</div>
 			<div class="money">
-				<p>活动费用： <span>￥</span><span>800</span></p>
+				<p>活动费用： <span>￥</span><span>{{payInfo.fee}}</span></p>
 			</div>
 		</div>
 		<div class="activity-item">
 			<ul>
 				<li>
 					<span>活动名称：</span>
-					<span>广州市番禺区青蓝街22</span>
+					<span>{{payInfo.title}}</span>
 				</li>
 				<li>
 					<span>活动日期：</span>
-					<span>2016-09-30 24:00</span>
+					<span>{{payInfo.startTime}}</span>
 				</li>
 				<li>
 					<span>活动地点：</span>
-					<span>广州市番禺区青蓝街22号超谷科技园 超谷展厅</span>
+					<span>{{payInfo.place}}</span>
 				</li>
 				<li>
 					<span>收费方式：</span>
@@ -32,6 +32,29 @@
 		</div>
 	</div>
 </template>
+
+<script>
+	import api from '../../api/api'
+
+	export default {
+		data () {
+			return {
+				payInfo: {}
+			}
+		},
+		created () {
+			this.getPayInfo()
+		},
+		methods: {
+			getPayInfo () {
+				api.payInfo({id: this.$route.params.id}).then(res => {
+					console.log(res.data)
+					this.payInfo = res.data
+				})
+			}
+		}
+	}
+</script>
 
 <style lang="less">
 	.activity-pay {

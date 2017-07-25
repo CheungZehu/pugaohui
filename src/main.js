@@ -6,10 +6,14 @@ import App from './App'
 import router from './router'
 import { sync } from 'vuex-router-sync'
 import axios from 'axios'
-import { ToastPlugin, LoadingPlugin } from 'vux'
+import { ToastPlugin, LoadingPlugin, WechatPlugin } from 'vux'
+import util from './assets/js/util'
+
+Vue.prototype.util = util
 
 Vue.use(ToastPlugin)
 Vue.use(LoadingPlugin)
+Vue.use(WechatPlugin)
 
 Vue.use(Vuex)
 
@@ -35,30 +39,30 @@ Vue.config.productionTip = false
 const store = new Vuex.Store({})
 
 store.registerModule('vux', {
-	state: {
-		demoScrollTop: 100,
-		direction: 'forward',
-		isLoading: false
-	},
-	mutations: {
-		updateDemoPosition (state, payload) {
-			state.demoScrollTop = payload.top
-		},
-		updateDirection (state, payload) {
-			state.direction = payload.direction
-		},
-		updateLoadingStatus (state, payload) {
-			state.isLoading = payload.isLoading
-		}
-	},
-	actions: {
-		updateDemoPosition ({commit}, top) {
-			commit({type: 'updateDemoPosition', top: top})
-		},
-		updateLoadingStatus ({commit}, status) {
-			commit({type: 'updateLoadingStatus', status: status})
-		}
-	}
+  state: {
+    demoScrollTop: 0,
+    isLoading: false,
+    direction: 'forward'
+  },
+  mutations: {
+    updateDemoPosition (state, payload) {
+      state.demoScrollTop = payload.top
+    },
+    updateLoadingStatus (state, payload) {
+      state.isLoading = payload.isLoading
+    },
+    updateDirection (state, payload) {
+      state.direction = payload.direction
+    }
+  },
+  actions: {
+    updateDemoPosition ({commit}, top) {
+      commit({type: 'updateDemoPosition', top: top})
+    },
+    updateLoadingStatus({commit}, isLoading) {
+      commit({type: 'updateLoadingStatus', isLoading: isLoading})
+    }
+  }
 })
 
 Vue.use(store)
@@ -101,6 +105,34 @@ router.afterEach(function (to) {
 	store.commit('updateLoadingStatus', {isLoading: false})
 })
 
+/*
+  微信分享
+ */
+// import wx from 'weixin-js-sdk'
+
+// wx.ready(() => {
+//   console.log('wechat ready')
+//   wx.onMenuShareAppMessage({
+//     title: '普高会体育',
+//     desc: '普高会简介',
+//     link: '',
+//     imgUrl: 'http://s1.wego168.com/imgApp/upload/wx7d3c9e2d28015f9c/20170710/943b7687e1fd4fddb2ea21d785ffef40.jpg'
+//   })
+
+//   wx.onMenuShareTimeline({
+//     title: '普高会体育',
+//     desc: '普高会简介',
+//     link: '',
+//     imgUrl: 'http://s1.wego168.com/imgApp/upload/wx7d3c9e2d28015f9c/20170710/943b7687e1fd4fddb2ea21d785ffef40.jpg'
+//   })
+// })
+
+// const permissions = JSON.stringify(['onMenuShareAppMessage', 'onMenuShareTimeline'])
+// const url = document.location.href
+// axios.post('https://vux.li/jssdk?url=' + encodeURIComponent(url.split('#')[0]) + '&jsApiList=' + permissions).then(res => {
+//     wx.config(res.data.data)
+//   })
+
 /* eslint-disable no-new */
 // new Vue({
 //   el: '#app',
@@ -109,6 +141,10 @@ router.afterEach(function (to) {
 //   template: '<App/>',
 //   components: { App }
 // })
+
+const FastClick = require('fastclick')
+FastClick.attach(document.body)
+
 new Vue({
   router,
   store,

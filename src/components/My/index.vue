@@ -27,6 +27,7 @@
 				</cell>
 			</group>
 		</div>
+		<p>{{a}}</p>
 	</div>
 </template>
 
@@ -40,6 +41,7 @@
 		},
 		data () {
 			return {
+				a: {},
 				user: {
 					name: '哈妹',
 					img: '',
@@ -49,12 +51,13 @@
 			}
 		},
 		created () {
-			// this.getUser()
+			this.getUser()
 		},
 		methods: {
 			getUser () {
-				api.getInfo(id).then(res => {
+				api.getInfo().then(res => {
 					console.log(res.data)
+					this.a = res.data
 				})
 			}
 		}

@@ -1,38 +1,41 @@
 <template>
-	<div class="activity-detail">
+	<div class="activity-detail" v-if="show">
 		<div class="activity-title">
 			<p>{{titleDetail.title}}</p>
 			<p>
 				<span class="time">{{titleDetail.showDate}}</span>
-				<span class="origin">{{titleDetail.author}}</span>
+				<span class="author" v-if="titleDetail.author">{{titleDetail.author}}</span>
+				<a class="origin" :href="titleDetail.weixinUrl" v-if="titleDetail.weixinName">{{titleDetail.weixinName}}</a>
 			</p>
 		</div>
+		<!-- <div class="activity-item" v-html=""></div> -->
+
 		<div class="activity-item">
 			<p class="title">活动信息</p>
 			<ul>
 				<li>
 					<span>报名截止</span>
-					<span>广州市番禺区青蓝街22</span>
+					<span>{{titleDetail.signEndTime}}</span>
 				</li>
 				<li>
 					<span>活动时间</span>
-					<span>2016-09-30 24:00 10-08 08：00至10-10 18:00 广州市番禺区青蓝街22号超谷科技园 超谷展厅</span>
+					<span>{{titleDetail.endTime}}</span>
 				</li>
 				<li>
 					<span>活动地点</span>
-					<span>2016-09-30 24:00 10-08 08：00至10-10 18:00 广州市番禺区青蓝街22号超谷科技园 超谷展厅</span>
+					<span>{{titleDetail.place}}</span>
 				</li>
 				<li>
 					<span>活动人数</span>
-					<span>2016-09-30 24:00 1科技园 超谷展厅</span>
+					<span>已有3人报名（上限500人）</span>
 				</li>
 				<li>
 					<span>活动状态</span>
-					<span>2016-09-30 24:0厅</span>
+					<span>{{titleDetail.signMsg}}</span>
 				</li>
 			</ul>
 		</div>
-		<div class="activity-item">
+		<!-- <div class="activity-item">
 			<p class="title">活动内容</p>
 			<div class="activity-content">
 				<img src="../../../static/images/biaotitu_03.png" alt="">
@@ -40,6 +43,8 @@
 				<p>由广州电子商务行业协会主办、中国电信股 份有限公司中国电信.广州.荔湾.互联网+基地协办 的第三期华南电商大讲堂</p>
 				<p>由广州电子商务行业协会主办、中国电信股 份有限公司中国电信.广州.荔湾.互联网+基地协办 的第三期华南电商大讲堂</p>
 			</div>
+		</div> -->
+		<div class="activity-item pd" v-html="activityDetail">
 		</div>
 		<div class="enter-list">
 			<p>已有3人报名（上限500人）</p>
@@ -65,17 +70,21 @@
 			</p>
 		</div>
 		<div class="comment-list">
-			<comment></comment>
-			<comment></comment>
-			<comment></comment>
+			<comment v-for="(item, key) in commentList" :key="key" :nickname="item.nickname" :content="item.content" :createTime="item.createTime"></comment>
+			<!-- <comment></comment>
+			<comment></comment> -->
 		</div>
+		<div style="height: 50px;"></div>
 		<div class="send-comment">
-			<input type="text" placeholder="评论">
-			<!-- <textarea rows="2" cols="50"></textarea> -->
-			<span>发送</span>
+		<!-- 	<input type="text" placeholder="评论" v-model="text">
+			<span @click="send">发送</span> -->
+			<group>
+				<x-textarea :max="70" autosize :rows="1" :show-counter="false" v-model="text" placeholder="最多可输入70字"></x-textarea>
+			</group>
+			<span @click="send">发送</span>
 		</div>
-		<span class="enter-icon" @click="getApplicationForm">报名</span>
-		<application-form v-if="isApplicationForm"></application-form>
+		<span class="enter-icon" @click="getApplicationForm" style="display: none;">报名</span>
+		<application-form v-if="isApplicationForm" @isShow="getApplicationForm" :inputData='inputData'></application-form>
 	</div>
 </template>
 
@@ -83,42 +92,109 @@
 	import ApplicationForm from '../Common/ApplicationForm'
 	import Comment from '../Common/Comment'
 	import api from '../../api/api'
+	import { mapActions } from 'vuex'
+	import { Group, XTextarea } from 'vux'
 
 	export default {
 		components: {
-			ApplicationForm, Comment
+			ApplicationForm, Comment, XTextarea, Group
 		},
 		data () {
 			return {
 				isApplicationForm: false,
 				activityDetail: [],
-				titleDetail: {}
+				titleDetail: {},
+				show: false,
+				inputData: [],
+				commentList: [],
+				text: '',
+				row: 3,
 			}
 		},
 		created () {
-			this.setDetail(this.$route.params.id)
+			this.setDetail()
+			this.setInfoSetting()
+		},
+		watch: {
+			'$route': 'setDetail'
 		},
 		methods: {
+			...mapActions([
+				'updateLoadingStatus'
+			]),
 			getApplicationForm () {
 				this.isApplicationForm = !this.isApplicationForm;
+				this.setInfoSetting()
 				let body = document.getElementsByTagName('body')[0]
 				if (this.isApplicationForm) {
 					body.setAttribute('style', 'overflow:hidden;')
 				} else {
-					body.setAttribute('style', 'overflow:hidden;')
+					body.setAttribute('style', '')
 				}
 			},
-			setDetail (id) {
-				api.getDetail({id: id}).then(res => {
+			setDetail () {
+				this.show = false
+				this.updateLoadingStatus(true)
+				api.ActivityDetail({id: this.$route.params.id}).then(res => {
 					this.titleDetail = res.data
 					this.activityDetail = this.titleDetail.content
+					var strs = this.activityDetail.split('<img style="display:inline;')
+					var text = '<img style="display:inline;width:100%;height:100%;'
+					for (var i = 0; i < strs.length - 1; i++) {
+						strs[i] += text
+					}
+					function append (oVal, nVal) {
+						return oVal + nVal
+					}
+					this.activityDetail = strs.reduce(append)
+					this.updateLoadingStatus(false)
+					this.show = true
+				})	
+			},
+			setCommentList () {
+				this.show = false
+				this.updateLoadingStatus(true)
+				api.commentList().then(res => {
+					this.commentList = res.data
 				})
+			},
+			setInfoSetting () {
+				api.SignUpInfoSetting({id: this.$route.params.id}).then(res => {
+					console.log(res.data)
+					this.inputData = res.data
+				})
+			},
+			send () {
+				if (this.text) {
+					let data = {
+						content: this.text,
+						openId: 'djas234jdgfsdfde35',
+						nickname: '放得开',
+						headImgUrl: 'http://s1.wego168.com/imgApp/upload/null/img/3b8d19f132be4c0ea053aa4d875ed4bf.png'
+					}
+					// api.saveComment({content: this.text}).then(res => {
+					api.saveComment(data).then(res => {
+						console.log(res.data)
+					})
+					// console.log(this.text)
+					// this.text = ''
+					// this.row = 1
+					// console.log(this.row)
+					this.showInfo('评论成功')
+					setTimeout(() => {
+						// window.location.reload()
+					}, 500)
+					
+				} else {
+					this.showInfo('请填写评论')
+				}
+				
 			}
 		}
 	}
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
 	.activity-detail {
 		.activity-title {
 			background-color: #fff;
@@ -126,17 +202,26 @@
 			border-bottom: 1px solid #f2f2f2;
 			p:first-child {
 				margin-bottom: 10px;
-				font-size: 20px;
+				font-size: 24px;
 				font-weight: bold;
+				color: #3e3e3e;
 			}
 			p:last-child {
 				line-height: 25px;
 				position: relative;
 				span {
 					color: #888888;
-					font-size: 14px;	
+					font-size: 16px;
+					margin-right: 5px;
+				}
+				.origin {
+					color: #607fa6;
+					font-size: 16px;
 				}
 			}
+		}
+		.pd {
+			padding: 0 10px;
 		}
 		.activity-item {
 			background-color: #fff;
@@ -207,16 +292,24 @@
 		}
 		.send-comment {
 			background-color: #fff;
-			padding: 10px 20px;
+			border-top: 1px solid #f2f2f2;
+			position: fixed;
+			bottom: 50px;
+			width: 94%;
+			padding: 10px 3%;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
 			input {
 				padding: 5px;
 				border-radius: 5px;
 				border: 1px solid #f2f2f2;
 				font-size: 18px;
-				width: 80%;
+				width: 100%;
 			}
 			span {
-				float: right;
+				flex-basis: 40px;
+				margin-left: 10px;
 			}
 		}
 		.enter-icon {
@@ -235,5 +328,17 @@
 			cursor: pointer;
 			outline: none;
 		}
+	}
+	.weui-cells {
+		margin-top: 0 !important;
+		border-left: 1px solid #D9D9D9;
+		border-right: 1px solid #D9D9D9;
+		border-radius: 5px;
+	}
+	.vux-no-group-title {
+		margin-top: 0 !important;
+	}
+	.weui-cell {
+		padding: 5px !important;
 	}
 </style>
