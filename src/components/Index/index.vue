@@ -1,33 +1,27 @@
 <template>
-	<!-- <div> -->
 	<div class="main" id="demo_list_box">
-	<!-- <div class="main" id="demo_list_box" :style="{height: `${height}px`}"> -->
 		<div class="picture" v-if="imgList.length > 0">
 			<swiper loop auto :list="imgList" dots-position="center"></swiper>
 		</div>
 
-		<div class="index-item" v-if="Introduction.length > 0">
+		<div class="index-item">
 			<div class="item-title">
-				<!-- <i class="icon iconfont icon-guanyu"></i> -->
 				<span class="title iconfont icon-guanyu">关于普高会</span>
-				<!-- <router-link ></router-link> -->
-				<i class="arrow iconfont icon-fangxiang1"></i>
-				<span class="more">更多</span>
-				
+				<router-link to="/index/IntroductionList">
+					<i class="arrow iconfont icon-fangxiang1"></i>
+					<span class="more">更多</span>
+				</router-link>
 			</div>
 			<div class="item-list">
-				<!-- <p v-for="item in allData[0]" :key="item.id">
-					{{item.title}}
-				</p> -->
 				<router-link v-for="item in Introduction" :key="item.id" :to="{name: 'NewsDetail', params: {id: item.id}}">
 					<p>{{item.title}}</p>
 				</router-link>
 			</div>
 		</div>
-		<div class="index-item" v-if="newsList.length > 0">
+		<div class="index-item">
 			<div class="item-title">
 				<span class="title iconfont icon-dongtai">最新动态</span>
-				<router-link to="/activity">
+				<router-link to="/index/News">
 					<i class="arrow iconfont icon-fangxiang1"></i>
 					<span class="more">更多</span>
 				</router-link>
@@ -39,21 +33,21 @@
 				</router-link>
 			</div>
 		</div>
-		<div class="index-item" v-if="Activity.length > 0">
+		<div class="index-item">
 			<div class="item-title">
-				<span class="title iconfont icon-huodong1">各种活动</span>
-				<router-link to="/activity/ActivityList">
+				<span class="title iconfont icon-huodong1">精彩活动</span>
+				<router-link to="/activity/ActivityList" target="_blank">
 					<i class="arrow iconfont icon-fangxiang1"></i>
 					<span class="more">更多</span>
 				</router-link>
 			</div>
 			<div class="item-listImg">
 					<router-link class="graphic" v-for="item in Activity" :key="item.id" :to="{name: 'ActivityDetail', params: {id: item.id}}">
-						<graphic :title="item.title" :imgUrl="img + item.imgUrl" :time="item.startTime" :status="item.status"></graphic>
+						<graphic :title="item.title" :imgUrl="img + item.imgUrl" :time="item.startTime" :status="item.signMsg"></graphic>
 					</router-link>
 			</div>
 		</div>
-		<div class="index-item" v-if="Coach.length > 0">
+		<div class="index-item">
 			<div class="item-title">
 				<span class="title iconfont icon-jiaolian">我们的教练</span>
 				<router-link to="/index/Coach">
@@ -62,13 +56,13 @@
 				</router-link>
 			</div>
 			<router-link tag="li" v-for="item in Coach" :key="item.id" :to="{name: 'CoachDetail', params: {id: item.id}}">
-				<people-list :name="item.title" :imgUrl="img + item.imgurl" :introInfo="item.introInfo"></people-list>
+				<people-list :name="item.title" :imgUrl="img + item.imgurl" :introInfo="item.introInfo"  :phone="item.extend1"></people-list>
 			</router-link>
 			
 		</div>
-		<div class="index-item" v-if="Cooperation.length > 0">
+		<div class="index-item">
 			<div class="item-title">
-				<span class="title iconfont icon-hezuo">合作伙伴</span>
+				<span class="title iconfont icon-huoban">合作伙伴</span>
 				<router-link to="/cooperation">
 					<i class="arrow iconfont icon-fangxiang1"></i>
 					<span class="more">更多</span>
@@ -80,7 +74,6 @@
 			
 		</div>
 	</div>
-	<!-- </div> -->
 </template>
 
 <script>
@@ -106,24 +99,17 @@
 				Coach: [],
 				Cooperation: [],
 				img: 'http://s1.wego168.com/imgApp',
-				height: window.innerHeight - 50
 			}
 		},
-		activated () {
-	    document.querySelector('#demo_list_box').scrollTop = this.demoTop
-	  },
-		computed: {
-			...mapState({
-				demoTop: state => state.vux.demoScrollTop
-			})
-		},
-		created () {
-			this.getIndexGarousel()
+		mounted () {
+			this.getIndexCarousel()
 			this.getIndexNews()
 			this.getActivityList()
+			this.configWxSdk()
 		},
+
 		methods: {
-			getIndexGarousel () {
+			getIndexCarousel () {
 				api.getCarousel().then(res => {
 					if (res.data) {
 						// console.log(res.data)
@@ -131,13 +117,16 @@
 						this.imgList = ImgData.map(item => ({
 						img: this.img + item.path
 						}))
+						// console.log(this.imgList)
 					}
 				})
 			},
 			getIndexNews () {
 				api.getIndexNews().then(res => {
 					if (res.data) {
+						// console.log(res.data)
 						let objData = res.data
+						// console.log(res.data)
 						objData.map(item => {
 							switch (item.code) {
 								case 'News':
@@ -159,11 +148,51 @@
 				})
 			},
 			getActivityList () {
-				api.DefaultActivityList().then(res => {
+				api.ActivityList({pageNumber: 1}).then(res => {
 					if (res.data) {
-						this.Activity = res.data
-						// console.log(this.Activity)
+						console.log(res.data)
+						this.Activity = res.data.list.slice(0, 8)
 					}
+				})
+			},
+			// 微信转发分享
+			loadJsapiTicketSign (jsApiList) {
+				let signUrl = location.href.split('#')[0]
+				api.getWeixin({url: signUrl}).then(res => {
+					this.configApiList(res.data, jsApiList)
+				})
+			},
+			configWxSdk () {
+				this.$wechat.ready(() => {
+					let dataForWeixin = {
+						title: '普高会体育',
+						desc: '广东普高会体育发展有限公司，简称普高会“PGH”，一个普及高尔夫文化的商务社交平台。',
+						link: `http://wfx.wego168.com/wx7d3c9e2d28015f9c/wechat/newsBase/urlSkipAction!accreditPghIndex.action?oauthTypeBase=false`,
+						imgUrl: `http://s1.wego168.com/imgApp/upload/wx7d3c9e2d28015f9c/img/12ed9f835b504311962c2d0b0b4369d3.png`,
+						success: () => {
+
+						},
+						cancel: () => {
+
+						},
+					}
+					this.$wechat.onMenuShareTimeline(dataForWeixin)
+					this.$wechat.onMenuShareAppMessage(dataForWeixin)
+				})
+				this.$wechat.error(() => {
+					// alert('失败')
+				})
+				let jsApiList = ['onMenuShareTimeline', 'onMenuShareAppMessage']
+				this.loadJsapiTicketSign(jsApiList)
+			},
+			configApiList (obj, jsApiList) {
+				this.$wechat.config({
+					debug: false,
+					appId: obj.appId,
+					timestamp: obj.timestamp,
+					nonceStr: obj.nonceStr,
+					signature: obj.signature,
+					jsApiList: jsApiList
 				})
 			}
 		}
@@ -173,8 +202,12 @@
 <style lang="less" scoped>
 	.demo-list-box {
 	  width: 100%;
+	  background: #f2f2f2;
 	  overflow: scroll;
 	  -webkit-overflow-scrolling: touch;
+	}
+	.main {
+		background: #f2f2f2;
 	}
 	.index-item {
 		margin-bottom: 15px;
@@ -187,7 +220,6 @@
 				font-size: 18px;
 				line-height: 50px;
 				color: #00377e;
-				font-weight: bold;
 				padding-left: 30px;
 				&:before {
 					margin-right: 5px;

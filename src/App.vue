@@ -1,9 +1,10 @@
 <template>
   <div id="app">
-    <!-- <div v-transfer-dom>
+    <div v-transfer-dom>
       <loading v-model="isLoading"></loading>
+      <!-- <load-ing v-show="isLoading"></load-ing> -->
     </div>
-    <transition :name="'slide-' + (direction === 'forward' ? 'in' : 'out')">
+<!--     <transition :name="'slide-' + (direction === 'forward' ? 'in' : 'out')">
       <router-view class="router-view"></router-view>
     </transition> -->
     <router-view></router-view>
@@ -12,21 +13,43 @@
 
 <script>
 import { mapState, mapActions } from 'vuex'
-import { TransferDom } from 'vux'
+import { TransferDom, Loading } from 'vux'
+import LoadIng from './components/Common/Loading'
 
 export default {
   name: 'app',
   directives: {
     TransferDom
   },
+  components: {
+    Loading, LoadIng
+  },
   computed: {
     ...mapState({
       route: state => state.route,
       path: state => state.route.path,
-      isLoading: state => state.vux.isLoading,
-      direction: state => state.vux.direction,
-      demoTop: state => state.vux.demoScrollTop
-    })
+      isLoading: state => state.isLoading,
+      // direction: state => state.vux.direction,
+      // demoTop: state => state.vux.demoScrollTop
+    }),
+    isAct () {
+      return /ActivityDetail/.test(this.$route.path)
+    }
+  },
+  methods: {
+    reload () {
+      if (this.isAct) {
+        // alert(3)
+        window.location.reload()
+      } else {
+        return
+      }
+    }
+  },
+  watch: {
+    // '$route' (to, from) {
+    //       console.log(to)
+    //   }
   }
 }
 </script>
@@ -34,10 +57,8 @@ export default {
 <style lang="less">
   
   @import '~vux/src/styles/reset.less';
-  @import '//at.alicdn.com/t/font_s9uesgqiopw4s4i.css';
-  body {
-    background-color: #f2f2f2;
-  }
+  @import '//at.alicdn.com/t/font_ymbhpfy9o83erk9.css';
+
   * {
     margin: 0;
     padding: 0;
@@ -48,17 +69,34 @@ export default {
   li {
     list-style: none;
   }
-  
-  html, body {
+  div, h1, p, ul, li, label, textarea, input, span {
+    word-break: break-all;
+  }
 
+  html, body {
+    height: 100%;
     width: 100%;
-    overflow-x: auto;
+    background: #f2f2f2;
     -webkit-overflow-scrolling: touch;
   }
-  .router-view {
-    width: 100%;
-    top: 0;
+
+  
+  .rightMove-enter-active,
+  .rightMove-leave-active {
+  transition: all .3s
   }
+
+  .rightMove-enter,
+  .rightMove-leave-to {
+  transform: translate3d(100%, 0, 0)
+  }
+</style>
+
+<!-- 
+    .router-view {
+      width: 100%;
+      top: 0;
+    }
 
   .slide-out-enter-active,
   .slide-out-leave-active,
@@ -86,5 +124,4 @@ export default {
   .slide-in-leave-active {
     opacity: 0;
     transform: translate3d(-100%, 0, 0);
-  }
-</style>
+  } -->

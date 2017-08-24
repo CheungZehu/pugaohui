@@ -1,19 +1,43 @@
 <template>
 	<div class="people-list">
 		<div class="people-item">
-			<img :src="imgUrl" alt="">
+			<div class="img">
+				<img :src="imgUrl" alt="">
+			</div>
+			
 			<div class="people-title">
 				<p>{{name}}</p>
 				<p>{{introInfo}}</p>
-				<i class="iconfont icon-dianhua"></i>
+				<!-- <a href="www.baidu.com"> -->
+					<i @click.stop="tel" class="iconfont icon-dianhua" @></i>
+				<!-- </a> -->
+				<!-- <router-link to="">
+					<i class="iconfont icon-dianhua" link="www.baidu.com"></i>
+				</router-link> -->
 			</div>
 		</div>
 	</div>
 </template>
 
 <script>
+	import api from '../../api/api'
+
 	export default {
-		props: ['name', 'imgUrl', 'introInfo']
+		props: ['name', 'imgUrl', 'introInfo', 'phone'],
+		methods: {
+			tel () {
+				api.recordRialing({newsId: this.$route.params.id}).then(res => {
+					console.log(res.data)
+				})
+				if (this.phone === '' || this.phone === null || this.phone === undefined) {
+					this.showInfo('暂无号码')
+				} else {
+					window.location.href = `tel: ${this.phone}`
+				}
+				
+
+			}
+		}
 	}
 </script>
 
@@ -26,10 +50,14 @@
 			flex-flow: row wrap;
 			padding: 20px;
 			border-bottom: 1px solid #f2f2f2;
-			img {
-				width: 90px;
-				height: 90px;
+			.img {
+				width: 70px;
+				height: 70px;
 				border-radius: 50%;
+				overflow: hidden;
+				img {
+					width: 100%;
+				}
 			}
 			.people-title {
 				width: 60%;
@@ -47,6 +75,7 @@
 				right: 20px;
 				top: 20px;
 				color: rgb(94, 174, 0);
+				z-index: 100000;
 				font-size: 20px;
 			}
 		}

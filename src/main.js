@@ -21,7 +21,7 @@ Vue.prototype.showInfo = function (text) {
 	this.$vux.toast.show({
 		text: text,
 		type: 'text',
-		time: 2000
+		time: 500
 	})
 }
 Vue.prototype.loading = function (type) {
@@ -36,13 +36,14 @@ Vue.prototype.loading = function (type) {
 
 Vue.config.productionTip = false
 
-const store = new Vuex.Store({})
+// const store = new Vuex.Store({})
 
-store.registerModule('vux', {
+const store = new Vuex.Store({
   state: {
     demoScrollTop: 0,
     isLoading: false,
-    direction: 'forward'
+    direction: 'forward',
+    isScroll: false,
   },
   mutations: {
     updateDemoPosition (state, payload) {
@@ -53,6 +54,9 @@ store.registerModule('vux', {
     },
     updateDirection (state, payload) {
       state.direction = payload.direction
+    },
+    updateisScroll (state, payload) {
+      state.isScroll = payload.isScroll
     }
   },
   actions: {
@@ -61,6 +65,9 @@ store.registerModule('vux', {
     },
     updateLoadingStatus({commit}, isLoading) {
       commit({type: 'updateLoadingStatus', isLoading: isLoading})
+    },
+    updateisScroll ({commit}, isScroll) {
+      commit({type: 'updateisScroll', isScroll: isScroll})
     }
   }
 })
@@ -76,62 +83,44 @@ history.setItem('/', 0)
 
 router.beforeEach(function (to, from, next) {
 	store.commit('updateLoadingStatus', {isLoading: true})
-
-	const toIndex = history.getItem(to.path)
-	const fromIndex = history.getItem(from.path)
-
-	if (toIndex) {
-    if (!fromIndex || parseInt(toIndex, 10) > parseInt(fromIndex, 10) || (toIndex === '0' && fromIndex === '0')) {
-      store.commit('updateDirection', {direction: 'forward'})
-    } else {
-      store.commit('updateDirection', {direction: 'reverse'})
-    }
+  // console.log(/SendComment/.test(from.path))
+  // console.log(/ActivityDetail/.test(to.path) && /SendComment/.test(from.path)) 
+  if (/ActivityDetail/.test(to.path) && /SendComment/.test(from.path)) {
+    store.commit('updateisScroll', {isScroll: true})
   } else {
-    ++historyCount
-    history.setItem('count', historyCount)
-    to.path !== '/' && history.setItem(to.path, historyCount)
-    store.commit('updateDirection', {direction: 'forward'})
+    store.commit('updateisScroll', {isScroll: false})
   }
-
-	if (/\/http/.test(to.path)) {
-    let url = to.path.split('http')[1]
-    window.location.href = `http${url}`
-  } else {
+  setTimeout(() => {
     next()
-  }
+  }, 500)
+  
+	// const toIndex = history.getItem(to.path)
+	// const fromIndex = history.getItem(from.path)
+
+	// if (toIndex) {
+ //    if (!fromIndex || parseInt(toIndex, 10) > parseInt(fromIndex, 10) || (toIndex === '0' && fromIndex === '0')) {
+ //      store.commit('updateDirection', {direction: 'forward'})
+ //    } else {
+ //      store.commit('updateDirection', {direction: 'reverse'})
+ //    }
+ //  } else {
+ //    ++historyCount
+ //    history.setItem('count', historyCount)
+ //    to.path !== '/' && history.setItem(to.path, historyCount)
+ //    store.commit('updateDirection', {direction: 'forward'})
+ //  }
+
+	// if (/\/http/.test(to.path)) {
+ //    let url = to.path.split('http')[1]
+ //    window.location.href = `http${url}`
+ //  } else {
+ //    next()
+ //  }
 })
 
 router.afterEach(function (to) {
 	store.commit('updateLoadingStatus', {isLoading: false})
 })
-
-/*
-  微信分享
- */
-// import wx from 'weixin-js-sdk'
-
-// wx.ready(() => {
-//   console.log('wechat ready')
-//   wx.onMenuShareAppMessage({
-//     title: '普高会体育',
-//     desc: '普高会简介',
-//     link: '',
-//     imgUrl: 'http://s1.wego168.com/imgApp/upload/wx7d3c9e2d28015f9c/20170710/943b7687e1fd4fddb2ea21d785ffef40.jpg'
-//   })
-
-//   wx.onMenuShareTimeline({
-//     title: '普高会体育',
-//     desc: '普高会简介',
-//     link: '',
-//     imgUrl: 'http://s1.wego168.com/imgApp/upload/wx7d3c9e2d28015f9c/20170710/943b7687e1fd4fddb2ea21d785ffef40.jpg'
-//   })
-// })
-
-// const permissions = JSON.stringify(['onMenuShareAppMessage', 'onMenuShareTimeline'])
-// const url = document.location.href
-// axios.post('https://vux.li/jssdk?url=' + encodeURIComponent(url.split('#')[0]) + '&jsApiList=' + permissions).then(res => {
-//     wx.config(res.data.data)
-//   })
 
 /* eslint-disable no-new */
 // new Vue({

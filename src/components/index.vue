@@ -1,28 +1,34 @@
 <template>
   <div style="height:100%;">
-    <div v-transfer-dom>
+  <!--   <div v-transfer-dom>
+      <load-ing v-show="isLoading"></load-ing>
       <loading v-model="isLoading"></loading>
-    </div>
+    </div> -->
     <!-- <view-box ref="viewBox" body-padding-bottom="50px"> -->
-    <transition :name="'slide-' + (direction === 'forward' ? 'in' : 'out')">
+<!--     <transition :name="'slide-' + (direction === 'forward' ? 'in' : 'out')">
       <router-view class="router-view"></router-view>
-    </transition>
+    </transition> -->
+
+    <!-- <transition name="rightMove"  mode="in-out"> -->
+      <router-view class="router-view"></router-view>
+    <!-- </transition> -->
     
     <!-- <router-view></router-view> -->
     <div v-if="showBar">
     <div class="bottom"></div>
     <tabbar class="tabbar" slot="bottom">
       <tabbar-item :selected="isIndex" link="/index">
-         <span slot="label" class="iconfont" :class="[isIndex ? 'icon-shouye1' : 'icon-shouye']">首页</span>
+         <span slot="label" class="iconfont icon" :class="[isIndex ? 'icon-shouye1' : 'icon-shouye']">首页</span>
       </tabbar-item>
       <tabbar-item :selected="isActivity" link="/activity">
-         <span slot="label" class="iconfont" :class="[isActivity ? 'icon-huodong' : 'icon-huodong2']">活动</span>
+         <span slot="label" class="iconfont icon" :class="[isActivity ? 'icon-huodong' : 'icon-huodong2']">活动</span>
       </tabbar-item>
       <tabbar-item :selected="isCooperation" link="/cooperation">
-         <span slot="label" class="iconfont" :class="[isCooperation ? 'icon-hezuo2' : 'icon-hezuo1']">合作</span>
+         <span slot="label" class="iconfont icon" :class="[isCooperation ? 'icon-hezuo2' : 'icon-hezuo1']">合作</span>
       </tabbar-item>
-      <tabbar-item :selected="isMy" link="/my">
-         <span slot="label" class="iconfont" :class="[isMy ? 'icon-wode' : 'icon-wode1']">我的</span>
+      <!-- <tabbar-item :selected="isMy" link="/myInfo"> -->
+      <tabbar-item :selected="isMy" link="http://wfx.wego168.com/wx7d3c9e2d28015f9c/wechat/newsBase/urlSkipAction!accreditPghCenter.action?oauthTypeBase=false">
+         <span slot="label" class="iconfont icon" :class="[isMy ? 'icon-wode' : 'icon-wode1']">我的</span>
       </tabbar-item>
     </tabbar>
     </div>
@@ -32,7 +38,7 @@
 
 <script>
   import { Tabbar, TabbarItem, Loading, ViewBox, XHeader, TransferDom } from 'vux'
-  // import router from 'vue-router'
+  import LoadIng from './Common/Loading'
   import { mapState, mapActions } from 'vuex'
 
   export default {
@@ -40,7 +46,7 @@
       TransferDom
     },
     components: {
-      Tabbar, TabbarItem, Loading, ViewBox, XHeader
+      Tabbar, TabbarItem, Loading, ViewBox, XHeader, LoadIng
     },
     data () {
       return {
@@ -48,7 +54,7 @@
         transitionName:'',
         show: true,
         showBar: true,
-
+        status: 0,
         tag: '首页',
         tabBar: [
           {
@@ -87,61 +93,38 @@
       isMy () {
         return /my/.test(this.$route.path)
       },
+      isAct () {
+        return /ActivityDetail/.test(this.$route.path)
+      },
+      isBackground () {
+        if (/ModifyInfo/.test(this.$route.path) || /CompleteInfo/.test(this.$route.path) || /CoachDetail/.test(this.$route.path) || /CooperationDetail/.test(this.$route.path)) {
+          return true
+        } else {
+          return false
+        }
+      },
 
       ...mapState({
         route: state => state.route,
         path: state => state.route.path,
-        isLoading: state => state.vux.isLoading,
-        direction: state => state.vux.direction,
-        demoTop: state => state.vux.demoScrollTop
+        isLoading: state => state.isLoading,
+        // direction: state => state.direction,
+        // demoTop: state => state.demoScrollTop
       })
     },
-    created () {
-      // let type = this.util.getUrlParam('type')
-      // if (type === 'v2') {
-      //   this.showBar = false
-      // } else {
-      //   this.showBar = true
-      // }
-    },
     methods: {
-      ...mapActions([
-        'updateDemoPosition'
-      ])
-    },
-    mounted () {
-      this.handler = () => {
-        if (this.path === '/index') {
-          this.box = document.querySelector('#demo_list_box')
-          this.updateDemoPosition(this.box.scrollTop)
-          // this.updateDemoPosition(document.body.scrollTop)
-          // console.log()
+      background () {
+        if (this.isBackground) {
+          let body = document.querySelector('body')
+          body.style.background = "#fff"
+        } else {
+          let body = document.querySelector('body')
+          body.style.background = "#f2f2f2"
         }
-      }
-      // window.addEventListener('scroll', function () {
-      //   console.log(document.body.scrollTop)
-      // }, false)
-    },
-    beforeDestroy () {
-      this.box && this.box.removeEventListener('scroll', this.handler, false)
+      },
     },
     watch: {
-      path (path) {
-        // console.log(path === '/index')
-        if (path === '/index') {
-          setTimeout(() => {
-            this.box = document.querySelector('#demo_list_box')
-            if (this.box) {
-              // this.box.removeEventListener('scroll', this.handler, false)
-              // this.box.addEventListener('scroll', this.handler, false)
-              window.removeEventListener('scroll', this.handler, false)
-              window.addEventListener('scroll', this.handler, false)
-            }
-          }, 1000)
-        } else {
-          this.box && window.removeEventListener('scroll', this.handler, false)
-        }
-      }
+      '$route': 'background', 
     },
     
   }
@@ -155,15 +138,23 @@
   .bottom {
     height: 50px;
   }
+  .weui-tabbar__item.vux-tabbar-simple {
+    height: 54px !important;
+  }
   .weui-tabbar__item.weui-bar__item_on .weui-tabbar__label {
     color: #00377e !important;
   }
   .vux-tabbar-simple .weui-tabbar__label {
-    line-height: 30px !important;
+    line-height: 36px !important;
+    
+  }
+  .icon {
+    font-size: 14px !important;
   }
   .tabbar .iconfont:before {
-    height: 20px !important;
+    height: 24px !important;
     display: block;
+    font-size: 20px;
   }
 
   .fade-enter-active, .fade-leave-active {
@@ -173,12 +164,26 @@
     opacity: 0
   }
 
+
+  .rightMove-enter-active,
+  .rightMove-leave-active {
+    transition: all .3s
+  }
+
+  .rightMove-enter,
+  .rightMove-leave-to {
+    transform: translate3d(100%, 0, 0)
+  }
+
   .router-view {
     width: 100%;
     top: 0;
   }
 
-  .slide-out-enter-active,
+ 
+</style>
+
+ <!-- .slide-out-enter-active,
   .slide-out-leave-active,
   .slide-in-enter-active,
   .slide-in-leave-active {
@@ -204,5 +209,4 @@
   .slide-in-leave-active {
     opacity: 0;
     transform: translate3d(-100%, 0, 0);
-  }
-</style>
+  } -->

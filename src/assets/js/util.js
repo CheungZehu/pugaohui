@@ -64,6 +64,7 @@ let Utils = {
     }
     return { startTime: dateArray[0], endTime: dateArray.pop() }
   },
+  // 生成随机字符串
   getNewId() {
     let id = '';
     for (var i = 0; i < 8; i++) {
@@ -71,6 +72,46 @@ let Utils = {
     }
     return id;
   },
+
+  // 防抖
+  // debounce(func, wait) {
+  debounce(func, wait, immediate) {
+    // var timeout;
+    // return function () {
+    //     clearTimeout(timeout)
+    //     timeout = setTimeout(func, wait);
+    // }
+
+
+    var timeout, result
+
+    var debounced = () => {
+      var context = this
+      var args = arguments
+
+      if (timeout) clearTimeout(timeout)
+      if (immediate) {
+        // 如果已经执行过，不再执行
+        var callNow = !timeout
+        timeout = setTimeout(() => {
+          timeout = null
+        }, wait)
+        if (callNow) result = func.apply(context, args)
+      } else {
+        timeout = setTimeout(() => {
+          result = func.apply(context, args)
+        }, wait)
+      }
+      return result
+    }
+
+    debounced.cancel = () => {
+      clearTimeout(timeout)
+      timeout = null
+    }
+
+    return debounced
+  }
 };
 
 /*

@@ -1,8 +1,8 @@
 <template>
 	<div class="main">
-		<div class="picture" v-if="imgList.length > 0">
+		<!-- <div class="picture" v-if="imgList.length > 0">
 			<swiper loop auto :list="imgList" dots-position="center"></swiper>
-		</div>
+		</div> -->
 		<div class="new-title">
 			<router-link v-for="item in newsData" :key="item.id" :to="{name: 'NewsDetail', params: {id: item.id}}">
 				<new-title :title="item.title" :imgUrl="img + item.imgUrl" :showDate="item.showDate"></new-title>
@@ -18,7 +18,7 @@
 	import api from '../../api/api'
 	import { Swiper, SwiperItem, LoadMore } from 'vux'
 	import axios from 'axios'
-	import NewTitle from './newTitle'
+	import NewTitle from '../Activity/newTitle'
 
 	export default {
 		components: {
@@ -40,8 +40,7 @@
 			}
 		},
 		created () {
-			this.getActivityCarousel()
-			this.configWxSdk()
+			// this.getActivityCarousel()
 		},
 		mounted () {
 			let _this = this
@@ -49,48 +48,9 @@
 			window.onscroll = this.util.debounce(this.setScroll, 500, false)
 		},
 		methods: {
-			loadJsapiTicketSign (jsApiList) {
-				let signUrl = location.href.split('#')[0]
-				api.getWeixin({url: signUrl}).then(res => {
-					this.configApiList(res.data, jsApiList)
-				})
-			},
-			configWxSdk () {
-				this.$wechat.ready(() => {
-					let dataForWeixin = {
-						title: '普高会体育最新动态',
-						desc: '广东普高会体育发展有限公司，简称普高会“PGH”，一个普及高尔夫文化的商务社交平台。',
-						link: `http://wfx.wego168.com/wx7d3c9e2d28015f9c/wechat/newsBase/urlSkipAction!accreditPghNewsList.action?oauthTypeBase=false`,
-						imgUrl: `http://s1.wego168.com/imgApp/upload/wx7d3c9e2d28015f9c/img/12ed9f835b504311962c2d0b0b4369d3.png`,
-						success: () => {
-
-						},
-						cancel: () => {
-
-						},
-					}
-					this.$wechat.onMenuShareTimeline(dataForWeixin)
-					this.$wechat.onMenuShareAppMessage(dataForWeixin)
-				})
-				this.$wechat.error(() => {
-					// alert('失败')
-				})
-				let jsApiList = ['onMenuShareTimeline', 'onMenuShareAppMessage']
-				this.loadJsapiTicketSign(jsApiList)
-			},
-			configApiList (obj, jsApiList) {
-				this.$wechat.config({
-					debug: false,
-					appId: obj.appId,
-					timestamp: obj.timestamp,
-					nonceStr: obj.nonceStr,
-					signature: obj.signature,
-					jsApiList: jsApiList
-				})
-			},
 			getActivityCarousel () {
 				// let ActivityCarousel = 'ActivityCarousel'
-				let params = { categoryId: 'News' }
+				let params = { categoryId: 'ActivityNews' }
 				api.getCarousel(params).then(res => {
 					if (res.data) {
 						// console.log(res.data)
@@ -107,7 +67,7 @@
 			},
 			getNews () {
 				this.curPage++
-				let type = 'News'
+				let type = 'Qicheng'
 				let params = { pageNumber: this.curPage, type: type }
 				api.getNews(params).then(res => {
 					if (res.data) {

@@ -9,22 +9,13 @@
 				<!-- <span class="read">123</span> -->
 			</p>
 		</div>
-<!-- 		<div class="contact">
-			<div class="border-contact">
-				<p class="contact-title">-联系我们-</p>
-				<div class="info">
-					<p>联系人：李先生</p>
-					<p>联系电话： 13430769711</p>
-					<p>E-mail：jdhsd@163.com</p>
-					<p>联系地址：广州市天河区棠东路金豪广州市天河区棠东路金豪</p>
-				</div>
-			</div>
-		</div> -->
-		<div class="cooperation-text" v-html="cooperationDetail">
-		<!-- 	<div v-for="item in cooperationDetail" :key="item.id">
-				<img v-if="/img/.test(item)" :src="item" alt="">
-				<p v-html="item" v-else></p>
-			</div> -->
+
+		<div class="cooperation-text" v-html="cooperationDetail"></div>
+		<div class="bottom">
+			<router-link to="/index">
+				<span>返回首页</span>
+			</router-link>
+			<span class="logo">企成 · 互联</span>
 		</div>
 	</div>
 </template>
@@ -57,17 +48,59 @@
 				api.getDetail({id: this.$route.params.id}).then(res => {
 					this.titleDetail = res.data
 					this.cooperationDetail = this.titleDetail.content
-					var strs = this.cooperationDetail.split('<img style="display:inline;')
-					var text = '<img style="display:inline;width:100%;height:100%;'
-					for (var i = 0; i < strs.length - 1; i++) {
-						strs[i] += text
+					if (/<img style="display:inline;/.test(this.cooperationDetail)) {
+						var strs = this.cooperationDetail.split('<img style="display:inline;')
+						var text = '<img style="display:inline;width:100%;height:100%;'
+						for (var i = 0; i < strs.length - 1; i++) {
+							strs[i] += text
+						}
+						function append (oVal, nVal) {
+							return oVal + nVal
+						}
+						this.cooperationDetail = strs.reduce(append)
 					}
-					function append (oVal, nVal) {
-						return oVal + nVal
-					}
-					this.cooperationDetail = strs.reduce(append)
+					setTimeout(() => {
+						this.configWxSdk()
+					}, 500)
 					this.updateLoadingStatus(false)
 					this.show = true
+				})
+			},
+			// 微信分享转发
+			loadJsapiTicketSign (jsApiList) {
+				// let signUrl = location.href.split('#')[0]
+				let signUrl = location.href
+				api.getWeixin({url: signUrl}).then(res => {
+					this.configApiList(res.data, jsApiList)
+				})
+			},
+			configWxSdk() {
+				this.$wechat.ready(() => {
+					let dataForWeixin = {
+						title: this.titleDetail.title,
+						desc: this.titleDetail.shortContent || this.titleDetail.title,
+						link: `http://wfx.wego168.com/wx7d3c9e2d28015f9c/wechat/newsBase/urlSkipAction!accreditPghCommentDetail.action?id=${this.$route.params.id}&oauthTypeBase=false`,
+						imgUrl: `http://s1.wego168.com/imgApp${this.titleDetail.imgUrl}`,
+						success: () => {},
+						cancel: () => {},
+					}
+					this.$wechat.onMenuShareTimeline(dataForWeixin)
+					this.$wechat.onMenuShareAppMessage(dataForWeixin)
+				})
+				this.$wechat.error(() => {
+					// alert('失败')
+				})
+				let jsApiList = ['onMenuShareTimeline', 'onMenuShareAppMessage']
+				this.loadJsapiTicketSign(jsApiList)
+			},
+			configApiList (obj, jsApiList) {
+				this.$wechat.config({
+					debug: false,
+					appId: obj.appId,
+					timestamp: obj.timestamp,
+					nonceStr: obj.nonceStr,
+					signature: obj.signature,
+					jsApiList: jsApiList
 				})
 			}
 		}
@@ -79,11 +112,10 @@
 		.cooperation-title {
 			background-color: #fff;
 			padding: 15px 15px 10px 15px;
-			border-bottom: 1px solid #f2f2f2;
+
 			p:first-child {
 				margin-bottom: 10px;
 				font-size: 24px;
-				font-weight: bold;
 				color: #3e3e3e;
 			}
 			p:last-child {
@@ -140,13 +172,38 @@
 			}
 		}
 		.cooperation-text {
-			margin-top:15px;
+		
 			background-color: #fff;
 			padding:20px;
 			
 			img {
 				width: 100%;
 				margin: 5px 0;
+			}
+		}
+		.bottom {
+			height: 60px;
+			line-height: 60px;
+			text-align: center;
+			span {
+				color: #999;
+				margin-right: 20px;
+			}
+			.logo {
+
+				border-left: 1px solid #999;
+				padding-left: 40px;
+				&:before {
+					content: '';
+					background: url('../../../static/images/qicheng.png') no-repeat;
+					background-size: 100%;
+					display: inline-block;
+					height: 17px;
+					width: 17px;
+					position: relative;
+					top: 4px;
+					right: 15px;
+				}
 			}
 		}
 	}

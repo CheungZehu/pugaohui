@@ -15,6 +15,7 @@
 
 <style lang="less" scoped>
 	.partner {
+		background: #fff;
 		.partner-item {
 			padding: 20px;
 			border-bottom: 1px solid #f2f2f2;

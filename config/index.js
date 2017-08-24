@@ -8,7 +8,7 @@ module.exports = {
     assetsRoot: path.resolve(__dirname, '../dist'),
     assetsSubDirectory: 'static',
     assetsPublicPath: './',
-    productionSourceMap: true,
+    productionSourceMap: false,
     // Gzip off by default as many popular static hosts such as
     // Surge or Netlify already gzip all static assets for you.
     // Before setting to `true`, make sure to:
@@ -30,9 +30,9 @@ module.exports = {
     proxyTable: {
         '/api': {
             // target: 'http://192.168.1.67:8081/wechat/mba/wechat/',
-            target: 'http://192.168.1.220:8080/wechat/mba/wechat/',
+            // target: 'http://192.168.1.220:8080/wechat/mba/wechat/',
             // target: 'http://wfx.wego168.com/wx4cafbb33aff562d3/wechat/',
-            // target: 'http://wfx.wego168.com/wx7d3c9e2d28015f9c/wechat/',
+            target: 'http://wfx.wego168.com/wx7d3c9e2d28015f9c/wechat/',
             
             changeOrigin: true,
             pathRewrite: {

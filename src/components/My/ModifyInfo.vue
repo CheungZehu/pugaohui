@@ -1,20 +1,20 @@
 <template>
 	<div class="modify-info">
-		<div class="bg"></div>
+		<!-- <div class="bg"></div> -->
 		<div class="title">
-			<h4>您可以点击修改您的个人资料</h4>
+			<p>您可以点击修改您的个人资料</p>
 			<div class="info">
 				<group>
-					<x-input title="姓名" v-model="userInfo['vo.name']" placeholder="请填写您的真实姓名">
+					<x-input title="姓名" v-model="userInfo.name" placeholder="请填写您的真实姓名">
 						<i slot="label" class="iconfont icon-wode1" style="padding-right:10px;display:block;" width="30" height="30"></i>
 					</x-input>
-					<x-input title="手机" v-model="userInfo['vo.mobile']" placeholder="请填写您的手机" type="number">
+					<x-input title="手机" v-model="userInfo.mobile" placeholder="请填写您的手机" type="number">
 						<i slot="label" class="iconfont icon-shouji" style="padding-right:10px;display:block;" width="30" height="30"></i>
 					</x-input>
-					<x-input title="公司" v-model="userInfo['vo.department']" placeholder="请填写公司全称">
+					<x-input title="公司" v-model="userInfo.department" placeholder="请填写公司全称">
 						<i slot="label" class="iconfont icon-gongsi" style="padding-right:10px;display:block;" width="30" height="30"></i>
 					</x-input>
-					<x-input title="职务" v-model="userInfo['vo.position']" placeholder="请填写您的职务">
+					<x-input title="职务" v-model="userInfo.position" placeholder="请填写您的职务">
 						<i slot="label" class="iconfont icon-zhiwei" style="padding-right:10px;display:block;" width="30" height="30"></i>
 					</x-input>
 				</group>
@@ -35,54 +35,68 @@
 		data () {
 			return {
 				userInfo: {
-					'vo.name': '',
-					'vo.mobile': '',
-					'vo.department': '',
-					'vo.position': '',
-					'vo.id': ''
-				}
+					name: '',
+					mobile: '',
+					department: '',
+					position: '',
+					id: ''
+				},
+				isBtn: true
 			}
 		},
 		created () {
-			let id = '4817d9aa4dd74914a070045ce51858f4'
-			this.loading(true)
-			this.setInfo(id)
+			// let id = '4817d9aa4dd74914a070045ce51858f4'
+			// this.loading(true)
+			this.setInfo()
 		},
 		methods: {
-			setInfo (id) {
-				let ids = {id:id}
-				api.getInfo(ids).then(res => {
-					if (!res.data) {
-						this.loading(true)
-					} else {
-						this.loading(false)
+			setInfo () {
+				// let ids = {id:id}
+				api.getInfo().then(res => {
+					// if (!res.data) {
+					// 	// this.loading(true)
+					// } 
+					if (res.data) {
+						// this.loading(false)
 						// console.log(res.data)
 						let data = res.data
-						this.userInfo['vo.name'] = data.name
-						this.userInfo['vo.mobile'] = data.mobile
-						this.userInfo['vo.department'] = data.department
-						this.userInfo['vo.position'] = data.position
+						this.userInfo.name = data.name
+						this.userInfo.mobile = data.mobile
+						this.userInfo.department = data.department
+						this.userInfo.position = data.position
+						this.userInfo.id = data.id
 					}
 				})
 			},
 			modifyInfo () {
-				if (this.userInfo['vo.name'] === '') {
+				if (this.userInfo.name === '') {
 					this.showInfo('请填写姓名')
-				} else if (this.userInfo['vo.mobile'] === '') {
+				} else if (this.userInfo.mobile === '') {
 					this.showInfo('请填写手机')
-				} else if (this.userInfo['vo.department'] === '') {
+				} else if (this.userInfo.department === '') {
 					this.showInfo('请填写公司')
-				} else if (this.userInfo['vo.position'] === '') {
+				} else if (this.userInfo.position === '') {
 					this.showInfo('请填写职务')
 				} else {
-					api.addInfo(this.userInfo).then(res => {
-						if (/html/.test(res.data)) {
-							this.showInfo('修改失败，请重新提交')
-						}
-						if (res.data) {
-							this.showInfo('修改成功')
-						}
-					})
+					if (this.isBtn) {
+						api.addInfo(this.userInfo).then(res => {
+							this.isBtn = false
+							if (/html/.test(res.data)) {
+								this.showInfo('修改失败，请重新提交')
+								this.isBtn = true
+							}
+							if (res.data) {
+								this.showInfo('修改成功')
+
+								setTimeout(() => {
+									this.$router.push('/myInfo')
+								}, 500)
+							} else {
+								this.showInfo('修改失败，请重新提交')
+								this.isBtn = true
+							}
+						})
+					}
 				}
 			}
 		}
@@ -91,7 +105,7 @@
 
 <style lang="less">
 	.modify-info {
-		margin: 0 20px;
+
 		.bg {
 			position: fixed;
 			top: 0;
@@ -102,8 +116,8 @@
 			z-index: -1;
 		}
 		.title {
-			margin-top: 60px;
-			h4 {
+			padding: 30px 20px 0 20px;
+			p {
 				text-align: center;
 				color: #333333;
 			}

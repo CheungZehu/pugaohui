@@ -1,25 +1,34 @@
 <template>
 	<div class="complete-info">
-		<div class="bg"></div>
+		<!-- <div class="bg"></div> -->
 		<div class="title">
-			<h4>请完善您的个人资料</h4>
+			<p>请完善您的个人资料</p>
 			<div class="info">
 				<group>
-					<x-input title="姓名" v-model="userInfo['vo.name']" placeholder="请填写您的真实姓名">
+					<!-- <x-input title="姓名" v-model="userInfo['vo.name']" placeholder="请填写您的真实姓名"> -->
+					<x-input title="姓名" v-model="userInfo.name" placeholder="请填写您的真实姓名">
 						<i slot="label" class="iconfont icon-wode1" style="padding-right:10px;display:block;" width="30" height="30"></i>
 					</x-input>
-					<x-input title="手机" v-model="userInfo['vo.mobile']" placeholder="请填写您的手机" type="number">
+					<!-- <x-input title="手机"  v-model="userInfo['vo.mobile']" placeholder="请填写您的手机" type="number">disabled -->
+					<x-input title="手机" disabled v-model="userInfo.mobile" placeholder="请填写您的手机" type="number">
 						<i slot="label" class="iconfont icon-shouji" style="padding-right:10px;display:block;" width="30" height="30"></i>
 					</x-input>
-					<x-input title="公司" v-model="userInfo['vo.department']" placeholder="请填写公司全称">
+					<!-- <x-input title="公司" v-model="userInfo['vo.department']" placeholder="请填写公司全称"> -->
+					<x-input title="公司" v-model="userInfo.department" placeholder="请填写公司全称">
 						<i slot="label" class="iconfont icon-gongsi" style="padding-right:10px;display:block;" width="30" height="30"></i>
 					</x-input>
-					<x-input title="职务" v-model="userInfo['vo.position']" placeholder="请填写您的职务">
+					<!-- <x-input title="职务" v-model="userInfo['vo.position']" placeholder="请填写您的职务"> -->
+					<x-input title="职务" v-model="userInfo.position" placeholder="请填写您的职务">
 						<i slot="label" class="iconfont icon-zhiwei" style="padding-right:10px;display:block;" width="30" height="30"></i>
 					</x-input>
 				</group>
+				<!-- <input type="hidden" name="vo.company"> -->
 			</div>
 			<button @click="addInfo">提交</button>
+			<p class="tiaoguo">
+				<span @click="tiaoguo" class="tiaoguo">跳过</span>
+			</p>
+			
 		</div>
 	</div>
 </template>
@@ -35,42 +44,107 @@
 		data () {
 			return {
 				userInfo: {
-					'vo.name': '',
-					'vo.mobile': '',
-					'vo.department': '',
-					'vo.position': ''
-				}
+					name: '',
+					mobile: '',
+					department: '',
+					position: ''
+				},
+				user: {
+					name: '',
+					mobile: '',
+					department: '',
+					position: ''
+				},
+				isBtn: true,
 			}
+		},
+		created () {
+			let mobile = localStorage.getItem('mobile')
+			console.log(mobile)
+			// this.userInfo['vo.mobile'] = mobile
+			this.userInfo.mobile = mobile
 		},
 		methods: {
 			addInfo () {
-				if (this.userInfo['vo.name'] === '') {
+				// this.isBtn = false
+				// console.log(11)
+				if (this.userInfo.name === '') {
+				// if (this.userInfo['vo.name'] === '') {
 					this.showInfo('请填写姓名')
-				} else if (this.userInfo['vo.mobile'] === '') {
+				} else if (this.userInfo.mobile === '') {
+				// } else if (this.userInfo['vo.mobile'] === '') {
 					this.showInfo('请填写手机')
-				} else if (this.userInfo['vo.department'] === '') {
+				} else if (this.userInfo.department === '') {
+				// } else if (this.userInfo['vo.department'] === '') {
 					this.showInfo('请填写公司')
-				} else if (this.userInfo['vo.position'] === '') {
+				} else if (this.userInfo.position === '') {
+				// } else if (this.userInfo['vo.position'] === '') {
 					this.showInfo('请填写职务')
 				} else {
-					api.addInfo(this.userInfo).then(res => {
-						if (/html/.test(res.data)) {
-							this.showInfo('保存失败，请重新提交')
-						}
-						if (res.data) {
-							this.showInfo('保存成功')
+					// this.showInfo('提交中')
+					if (this.isBtn) {
+						this.isBtn = false
+						// this.util.debounce(this.setScroll(), 5000, false)
+						api.addInfo(this.userInfo).then(res => {
+							// this.isBtn = false
 							console.log(res.data)
-						}
-					})
+							if (res.data) {
+								if (/html/.test(res.data)) {
+									this.showInfo('保存失败，请重新提交')
+									this.isBtn = true
+								} else {
+									localStorage.clear()
+									setTimeout(() => {
+										this.showInfo('保存成功')
+									}, 200)
+									
+									console.log(res.data)
+									setTimeout(() => {
+										this.$router.push('/myInfo')
+										// this.isBtn = true
+									}, 800)
+									
+								}
+							} else {
+								this.showInfo('保存失败，请重新提交')
+								this.isBtn = true
+							}
+						})
+					}
 				}
-			}
+			},
+			tiaoguo () {
+				// alert(2)
+				api.addInfo({mobile: this.userInfo.mobile}).then(res => {
+					if (res.data) {
+						if (/html/.test(res.data)) {
+							this.showInfo('跳过失败，请重新点击')
+							this.isBtn = true
+						} else {
+							localStorage.clear()
+							// setTimeout(() => {
+							// 	this.showInfo('保存成功')
+							// }, 200)
+							
+							// console.log(res.data)
+							setTimeout(() => {
+								this.$router.push('/myInfo')
+								// this.isBtn = true
+							}, 500)
+						}
+					} else {
+						this.showInfo('跳过失败，请重新点击')
+						this.isBtn = true
+					}
+				})
+			},
 		}
 	}
 </script>
 
 <style lang="less">
 	.complete-info {
-		margin: 0 20px;
+
 		.bg {
 			position: fixed;
 			top: 0;
@@ -81,8 +155,8 @@
 			z-index: -1;
 		}
 		.title {
-			margin-top: 60px;
-			h4 {
+			padding: 30px 20px 0 20px;
+			p {
 				text-align: center;
 				color: #333333;
 			}
@@ -103,6 +177,10 @@
 				line-height: 40px;
 				font-size: 20px;
 				margin-top: 40px;
+			}
+			.tiaoguo {
+				text-align: right;
+				margin-top: 20px;
 			}
 		}
 	}

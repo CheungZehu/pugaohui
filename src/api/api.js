@@ -4,8 +4,10 @@ import Vue from 'vue'
 
 axios.defaults.timeout = 60000;
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8';
-axios.defaults.baseURL = '/api'
-// axios.defaults.baseURL = 'http://wfx.wego168.com/wx7d3c9e2d28015f9c/wechat/'
+// axios.defaults.baseURL = '/api'
+axios.defaults.baseURL = 'http://wfx.wego168.com/wx7d3c9e2d28015f9c/wechat/'
+// axios.defaults.baseURL = 'http://wfx.wego168.com/wx4cafbb33aff562d3/wechat/'
+// axios.defaults.baseURL = 'http://192.168.1.67:8081/wechat/mba/wechat/'
 
 // axios.interceptors.response.use(res => {
 // 	if (res.data.session) {
@@ -23,6 +25,9 @@ function postData(url, params) {
 	return new Promise((resolve, reject) => {
 		axios.post(url, qs.stringify(params))
 			.then(res => {
+				// setTimeout(() => {
+				// 	this.$store.dispatch(updateLoadingStatus, false)
+				// })
 				resolve(res)
 			}, err => {
 				reject(err)
@@ -68,7 +73,6 @@ export default {
 
 	// 详情
 	getDetail (params) {
-		// return getData('/newIndex!getNewsDetail.action?id=' + params)
 		return getData('/newsBase/newIndex!getNewsDetail.action', params)
 	},
 
@@ -90,7 +94,12 @@ export default {
 
 	// 获取验证码
 	getValidateCode (params) {
-		return postData('/newsBase/Sms!sendValidateCode.action', params)
+		return postData('/Sms!sendValidateCode.action', params)
+	},
+
+	// 验证验证码
+	verifyValidateCode (params) {
+		return postData('/newsBase/user!validateCode.action', params)
 	},
 
 	// 微信sdk
@@ -119,7 +128,7 @@ export default {
 	},
 
 	// 报名简介
-	signUpIntroduction (params) {
+	signShow (params) {
 		return postData('/newsBase/activity!signShow.action', params)
 	},
 
@@ -140,18 +149,34 @@ export default {
 
 	// 支付接口
 	payInterface (params) {
-		return postData('/SwiftpassPay!pay.action', params)
+		// return postData('/SwiftpassPay!pay.action', params)
+		return postData('/SwiftpassPay!activityPay.action', params)
 	},
 
 	// 评论列表
 	commentList (params) {
-		return postData('/newsBase/activityCommentAction!ActivityCommentList.action', params)
+		return postData('/newsBase/activityCommentAction!activityCommentList.action', params)
 	},
 
 	// 保存评论
 	saveComment (params) {
 		return postData('/newsBase/activityCommentAction!saveComment.action', params)
 	},
+
+	// 我的活动
+	getMyActivityList (params) {
+		return postData('/newsBase/activity!getMyActivityList.action', params)
+	},
+
+	// 跳转到注册页或会员中心页
+	jumpPage (params) {
+		return postData('/newsBase/user!accredit.action', params)
+	},
+
+	// 拨号记录
+	recordRialing (params) {
+		return postData('/newsBase/newIndex!recordRialing.action', params)
+	}
 }
 
 // http://wfx.wego168.com/wx7d3c9e2d28015f9c/wechat/Member!loadJsapiTicketSign.action

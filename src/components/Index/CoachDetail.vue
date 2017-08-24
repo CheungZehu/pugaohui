@@ -2,38 +2,31 @@
 	<div class="coach-detail" v-if="show">
 		<div class="coach-item">
 			<div class="coach-head">
-				<img src="../../../static/images/touxiang_03.png" alt="">
+				<img :src="img + titleDetail.imgUrl" alt="">
 				<div class="coach-user">
 					<p class="coach-name">{{titleDetail.title}}</p>
 					<p>{{titleDetail.shortContent}}</p>
-					<!-- <p>职业教练</p> -->
+					<i @click="tel" class="iconfont icon-dianhua"></i>
 				</div>
 			</div>
 		</div>
-		<div class="coach-item text" v-html="coachDetail"></div>
-		<!-- <div class="coach-item">
-			<div class="coach-introduction">
-				<div class="introduction-item">
-					<h4>— 简介 —</h4>
-					<p>加拿大高尔夫球教师协会(CGTF)职业教练曾就农曾就农业系Turfgrass management专业, 200</p>
-					<p>加拿大高尔夫球教师协会(CGTF)职业教练曾就学于UBC农业系Turfgrass management专业, 200</p>
-				</div>
-				<div class="introduction-item">
-					<h4>— 教学理念 —</h4>
-					<p>加拿大高尔夫球教师协会(CGTF)职业教练曾就学于UBC农业系Turfgrass management专业, 200</p>
-					<p>加拿大高尔夫球教师协会(CGTF)职业教练曾就学于UBC农业系Turfgrass management专业, 200</p>
-				</div>
-			</div>
-		</div>
-		<div class="coach-item">
-			<div class="coach-pic">
-				<h4>— 教学图片 —</h4>
-				<img src="../../../static/images/biaotitu_03.png" alt="">
-				<img src="../../../static/images/biaotitu_03.png" alt="">
-				<img src="../../../static/images/biaotitu_03.png" alt="">
-				<img src="../../../static/images/biaotitu_03.png" alt="">		
-			</div>
+
+		<!-- <div class="coach-title">
+			<p>{{titleDetail.title}}</p>
+			<p>
+				<span class="time">{{titleDetail.showDate}}</span>
+				<span class="author" v-if="titleDetail.author">{{titleDetail.author}}</span>
+				<a class="origin" :href="titleDetail.weixinUrl" v-if="titleDetail.weixinName">{{titleDetail.weixinName}}</a>
+			</p>
 		</div> -->
+
+		<div class="coach-item content" v-html="coachDetail"></div>
+		<div class="bottom">
+			<router-link to="/index">
+				<span>返回首页</span>
+			</router-link>
+			<span class="logo">企成 · 互联</span>
+		</div>
 	</div>
 </template>
 
@@ -47,7 +40,8 @@
 				coachDetail: [],
 				titleDetail: {},
 				img: 'http://s1.wego168.com/imgApp',
-				show: false
+				show: false,
+				phone: '',
 			}
 		},
 		created () {
@@ -60,23 +54,78 @@
 			...mapActions([
 				'updateLoadingStatus'
 			]),
+			tel () {
+				api.recordRialing({newsId: this.$route.params.id}).then(res => {
+					console.log(res.data)
+				})
+				if (this.phone === '' || this.phone === null || this.phone === undefined) {
+					this.showInfo('暂无号码')
+				} else {
+					window.location.href = 	`tel: ${this.phone}`
+				}
+			},
 			setDetail () {
 				this.show = false
 				this.updateLoadingStatus(true)
 				api.getDetail({id: this.$route.params.id}).then(res => {
+					console.log(res.data)
 					this.titleDetail = res.data
+					this.phone = this.titleDetail.label
+					// this.phone = '15220036344'
 					this.coachDetail = this.titleDetail.content
-					var strs = this.coachDetail.split('<img style="display:inline;')
-					var text = '<img style="display:inline;width:100%;height:100%;'
-					for (var i = 0; i < strs.length - 1; i++) {
-						strs[i] += text
+					if (/<img style="display:inline;/.test(this.coachDetail)) {
+						var strs = this.coachDetail.split('<img style="display:inline;')
+						var text = '<img style="display:inline;width:100%;height:100%;'
+						for (var i = 0; i < strs.length - 1; i++) {
+							strs[i] += text
+						}
+						function append (oVal, nVal) {
+							return oVal + nVal
+						}
+						this.coachDetail = strs.reduce(append)
 					}
-					function append (oVal, nVal) {
-						return oVal + nVal
-					}
-					this.coachDetail = strs.reduce(append)
+					setTimeout(() => {
+						this.configWxSdk()
+					}, 500)
 					this.updateLoadingStatus(false)
 					this.show = true
+				})
+			},
+			// 微信分享转发
+			loadJsapiTicketSign (jsApiList) {
+				// let signUrl = location.href.split('#')[0]
+				let signUrl = location.href
+				api.getWeixin({url: signUrl}).then(res => {
+					this.configApiList(res.data, jsApiList)
+				})
+			},
+			configWxSdk() {
+				this.$wechat.ready(() => {
+					let dataForWeixin = {
+						title: this.titleDetail.title,
+						desc: this.titleDetail.shortContent || this.titleDetail.title,
+						link: `http://wfx.wego168.com/wx7d3c9e2d28015f9c/wechat/newsBase/urlSkipAction!accreditPghCoachDetail.action?id=${this.$route.params.id}&oauthTypeBase=false`,
+						imgUrl: `http://s1.wego168.com/imgApp${this.titleDetail.imgUrl}`,
+						success: () => {},
+						cancel: () => {},
+					}
+					this.$wechat.onMenuShareTimeline(dataForWeixin)
+					this.$wechat.onMenuShareAppMessage(dataForWeixin)
+				})
+				this.$wechat.error(() => {
+					// alert('失败')
+				})
+				let jsApiList = ['onMenuShareTimeline', 'onMenuShareAppMessage']
+				this.loadJsapiTicketSign(jsApiList)
+			},
+			configApiList (obj, jsApiList) {
+				this.$wechat.config({
+					debug: false,
+					appId: obj.appId,
+					timestamp: obj.timestamp,
+					nonceStr: obj.nonceStr,
+					signature: obj.signature,
+					jsApiList: jsApiList
 				})
 			}
 		}
@@ -84,7 +133,7 @@
 </script>
 
 <style lang="less">
-	.text {
+	.content {
 		padding: 10px 20px;
 	}
 	.coach-detail {
@@ -92,7 +141,7 @@
 			&:last-child {
 				margin-bottom: 0;
 			}
-			margin-bottom: 20px;
+
 			background-color: #fff;
 			.coach-head {	
 				height: 140px;
@@ -101,8 +150,9 @@
 				align-items: center;
 				img {
 					width: 80px;
-					height: 80px;
+					
 					border-radius: 50%;
+					flex-basis: 80px;
 					
 				}
 				.coach-user {
@@ -114,6 +164,14 @@
 					}
 					p:not(:first-child) {
 						color: #888888;
+					}
+					.icon-dianhua {
+						position: absolute;
+						right: 20px;
+						top: 25px;
+						color: rgb(94, 174, 0);
+						z-index: 100000;
+						font-size: 20px;
 					}
 				}
 			}
@@ -151,6 +209,30 @@
 				}
 			}
 		}
-		
+		.bottom {
+			height: 60px;
+			line-height: 60px;
+			text-align: center;
+			span {
+				color: #999;
+				margin-right: 20px;
+			}
+			.logo {
+
+				border-left: 1px solid #999;
+				padding-left: 40px;
+				&:before {
+					content: '';
+					background: url('../../../static/images/qicheng.png') no-repeat;
+					background-size: 100%;
+					display: inline-block;
+					height: 17px;
+					width: 17px;
+					position: relative;
+					top: 4px;
+					right: 15px;
+				}
+			}
+		}
 	}
 </style>

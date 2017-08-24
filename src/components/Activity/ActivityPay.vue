@@ -1,9 +1,11 @@
 <template>
+<div>
+	<div style="height: 20px;"></div>
 	<div class="activity-pay">
 		<div class="title-text">
 			<div class="title">
-				<h3>支付详情</h3>
-				<p class="time">2016-25-65 54.65</p>
+				<p>支付详情</p>
+				<!-- <p class="time">2016-25-65 54.65</p> -->
 			</div>
 			<div class="money">
 				<p>活动费用： <span>￥</span><span>{{payInfo.fee}}</span></p>
@@ -28,9 +30,10 @@
 					<span>微信支付</span>
 				</li>
 			</ul>
-			<button>微信支付</button>
+			<button @click="getPay">微信支付</button>
 		</div>
 	</div>
+</div>
 </template>
 
 <script>
@@ -39,17 +42,36 @@
 	export default {
 		data () {
 			return {
-				payInfo: {}
+				payInfo: {},
+				openId: '',
 			}
 		},
 		created () {
 			this.getPayInfo()
+			this.getOpenId()
 		},
 		methods: {
 			getPayInfo () {
 				api.payInfo({id: this.$route.params.id}).then(res => {
 					console.log(res.data)
 					this.payInfo = res.data
+				})
+			},
+			getOpenId () {
+				api.getInfo().then(res => {
+					this.openId = res.data.openId
+				})
+			},
+			getPay () {
+				let data = {
+					orderId: this.util.getNewId(),
+					num: this.payInfo.fee.toFixed(2),
+					remark: this.$route.params.id,
+					body: this.openId
+				}
+				console.log(data)
+				api.payInterface(data).then(res => {
+					console.log(res.data)
 				})
 			}
 		}
@@ -59,15 +81,14 @@
 <style lang="less">
 	.activity-pay {
 		background-color: #fff;
-		position: fixed;
-		top: 20px;
-		bottom: 150px;
-		left: 20px;
-		right: 20px;
+		margin: 0 20px 20px 20px;
 		.title-text {
 			border-bottom: 1px solid #f2f2f2;
 			padding: 10px 20px;
 			.title {
+				p {
+					font-size: 24px;
+				}
 				.time {
 					color: #6a6a6a;
 					font-size: 14px;
@@ -83,7 +104,7 @@
 						font-size: 26px;
 					}
 					span:last-child {
-						color: #00377e;
+						color: rgb(237, 153, 2);
 						font-size: 44px;
 					}
 				}
@@ -97,10 +118,10 @@
 				padding: 10px 0;
 				list-style: none;
 				li {
-					padding: 3px 0;
+					padding: 10px 0;
 					display: flex;
 					span:first-child {
-						flex-basis: 110px;
+						flex-basis: 130px;
 					}
 					span:last-child {
 						width: 100%;
@@ -109,7 +130,7 @@
 				}
 			}
 			button {
-				margin-top: 50px;
+				margin: 50px 0;
 				width: 100%;
 				background-color: #00377e;
 				border: none;
